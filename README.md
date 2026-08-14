@@ -1,3 +1,3 @@
 # Website
 
-GitHub repository for my personal website
+github repository for my personal website
