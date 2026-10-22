@@ -104,30 +104,30 @@ const Chatbot = () => {
 
   return (
     <div className="flex h-full flex-col items-center text-sm">
-      <span className="text-zinc-200 font-bold py-4">GuiBot 1.0</span>
+      <span className="text-primary font-bold py-4">GuiBot 1.0</span>
       <div 
-        className="bg-black max-w-3xl w-full h-full overflow-y-auto no-scrollbar p-4"
+        className="max-w-3xl w-full h-full overflow-y-auto no-scrollbar p-4"
         ref={chatContainerRef}
       >
         {writeHistory.map((msg, index) => (
           <div key={index} className="mb-4">
             <div className="flex items-start space-x-3">
-              <div className={`w-8 h-8 mt-1 rounded-full flex-shrink-0 text-xs ${
-                msg.role === 'user' ? 'bg-blue-500' : 'bg-red-500'
+              <div className={`w-8 h-8 mt-1 rounded-full flex-shrink-0 text-xs border ${
+                msg.role === 'user' ? 'bg-blue-500 border-blue-500' : 'bg-red-500 border-red-500'
               } flex items-center justify-center text-white`}>
                 {msg.role === 'user' ? 'y' : 'r'}
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className={`font-bold ${
-                    msg.role === 'user' ? 'text-blue-400' : 'text-red-400'
+                    msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {msg.role === 'user' ? 'you' : 'guiBot'}
                   </span>
-                  <span className="text-xs text-zinc-400">{msg.time}</span>
+                  <span className="text-xs text-tertiary">{msg.time}</span>
                 </div>
                 <div 
-                  className="text-zinc-100 mt-1"
+                  className="chat-markdown text-primary mt-1"
                   dangerouslySetInnerHTML={{ __html: marked(msg.text) }}
                 />
               </div>
@@ -135,29 +135,31 @@ const Chatbot = () => {
           </div>
         ))}
         {isLoading && (
-          <div className="ml-10 flex items-center space-x-2 text-zinc-400 p-4">
-            <div className="animate-bounce">•</div>
-            <div className="animate-bounce" style={{ animationDelay: '100ms' }}>•</div>
-            <div className="animate-bounce" style={{ animationDelay: '200ms' }}>•</div>
+          <div className="ml-10 flex items-center space-x-2 text-secondary p-4">
+            <div className="motion-safe:animate-bounce">•</div>
+            <div className="motion-safe:animate-bounce" style={{ animationDelay: '100ms' }}>•</div>
+            <div className="motion-safe:animate-bounce" style={{ animationDelay: '200ms' }}>•</div>
           </div>
         )}
       </div>
-      <div className="w-full px-4 pb-4 sticky mb-2 bottom-0  bg-gradient-to-t from-black via-black to-transparent pt-8">
+      <div className="w-full px-4 pb-4 sticky mb-2 bottom-0 bg-gradient-to-t from-surface via-surface to-transparent pt-8">
         <form 
-          className="relative bg-[#383A40] max-w-2xl mx-auto rounded-full flex justify-between items-center"
+          className="relative bg-field border border-control hover:border-control-hover focus-within:border-focus transition-colors duration-fast ease-out max-w-2xl mx-auto rounded-md flex justify-between items-center"
           onSubmit={handleSubmit}
         >
           <input
-            className="ml-1 w-full bg-transparent text-zinc-100 px-4 py-3 focus:outline-none"
+            className="w-full h-11 md:h-10 bg-transparent text-primary placeholder:text-secondary px-4 focus:outline-none focus-visible:outline-none"
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="type your message..."
+            aria-label="Message"
             disabled={isLoading}
           />
           <button 
-            className="w-8 h-8 mr-1 disabled:opacity-50"
+            className="w-11 h-11 flex items-center justify-center shrink-0 text-icon-primary disabled:text-icon-disabled"
             type="submit"
+            aria-label="Send message"
             disabled={isLoading}
           >
            <ArrowIcon />
