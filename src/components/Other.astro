@@ -29,7 +29,7 @@ const topVideoGames = [
 <section class="flex flex-col gap-6">
     <div class="flex flex-col">
         <span class="text-lg font-bold">top 5</span>
-        <span class="text-sm text-zinc-400">my favorite media (updated dec 2025) </span>
+        <span class="text-sm text-secondary">my favorite media (updated dec 2025) </span>
     </div>
 
     <!-- Movies -->
@@ -41,13 +41,13 @@ const topVideoGames = [
             {topMovies.map((movie, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
-                        <span class="absolute -top-2 -left-2 bg-zinc-600 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
+                        <span class="absolute -top-2 -left-2 bg-selected text-primary border border-strong text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
                             {index + 1}
                         </span>
                         <img 
                             src={movie.image} 
                             alt={movie.title}
-                            class="w-24 h-36 object-cover rounded border-2 border-zinc-600"
+                            class="w-24 h-36 object-cover rounded border"
                         />
                     </div>
                     <div class="flex flex-col items-center text-center">
@@ -67,13 +67,13 @@ const topVideoGames = [
             {topAnime.map((anime, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
-                        <span class="absolute -top-2 -left-2 bg-zinc-600 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
+                        <span class="absolute -top-2 -left-2 bg-selected text-primary border border-strong text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
                             {index + 1}
                         </span>
                         <img 
                             src={anime.image} 
                             alt={anime.title}
-                            class="w-24 h-36 object-cover rounded border-2 border-zinc-600"
+                            class="w-24 h-36 object-cover rounded border"
                         />
                     </div>
                     <div class="flex flex-col items-center text-center">
@@ -93,13 +93,13 @@ const topVideoGames = [
             {topVideoGames.map((game, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
-                        <span class="absolute -top-2 -left-2 bg-zinc-600 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
+                        <span class="absolute -top-2 -left-2 bg-selected text-primary border border-strong text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center z-10">
                             {index + 1}
                         </span>
                         <img 
                             src={game.image} 
                             alt={game.title}
-                            class="w-24 h-36 object-cover rounded border-2 border-zinc-600"
+                            class="w-24 h-36 object-cover rounded border"
                         />
                     </div>
                     <div class="flex flex-col items-center text-center">

@@ -15,17 +15,17 @@ const { title, description, languages, github, url } = Astro.props;
     <div class="flex items-center gap-2 mb-1">
         <span class="font-bold">{title}</span>
         {url && 
-            <a href={url} target="_blank" rel="noreferrer" class="text-zinc-400 hover:text-white">
+            <a href={url} target="_blank" rel="noreferrer" class="text-icon-secondary hover:text-icon-primary">
                 <span class="sr-only">{title} - open project</span>
                 <ExternalLink class="w-3 h-3" />
             </a>
         }
         {github && 
-            <a href={github} target="_blank" rel="noreferrer" class="ml-auto hover:scale-105 e">
+            <a href={github} target="_blank" rel="noreferrer" class="ml-auto text-icon-primary">
                 <span class="sr-only">{title} - view source</span>
                 <GithubIcon class="w-4 h-4" />
             </a>
         }
     </div>
-    <span class="inline-block text-xs text-zinc-300">{description}</span>
+    <span class="inline-block text-xs text-secondary">{description}</span>
 </div>
