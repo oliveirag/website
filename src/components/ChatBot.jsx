@@ -113,13 +113,15 @@ const Chatbot = () => {
           <div key={index} className="mb-4">
             <div className="flex items-start space-x-3">
               <div className={`w-8 h-8 mt-1 rounded-full flex-shrink-0 text-xs border ${
-                msg.role === 'user' ? 'bg-selected text-primary border-strong' : 'bg-action text-on-action border-transparent'
-              } flex items-center justify-center`}>
+                msg.role === 'user' ? 'bg-blue-500 border-blue-500' : 'bg-red-500 border-red-500'
+              } flex items-center justify-center text-white`}>
                 {msg.role === 'user' ? 'y' : 'r'}
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-primary">
+                  <span className={`font-bold ${
+                    msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
                     {msg.role === 'user' ? 'you' : 'guiBot'}
                   </span>
                   <span className="text-xs text-tertiary">{msg.time}</span>

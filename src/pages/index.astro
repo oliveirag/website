@@ -52,8 +52,8 @@ const mainProjects = [
         <div class="md:col-span-3 space-y-2 md:space-y-4">
           <div id="about" class="motion-preset-slide-right-sm flex flex-col">
             <span class="font-bold">about me</span>
-            <span>computer science @ ucf.</span>
-            <span class="text-secondary">currently building something cool</span>
+            <span>computer science @ <span class="text-yellow-600 dark:text-yellow-400">ucf</span>.</span>
+            <span class="rainbow-letters">currently building something cool</span>
             <!-- <a href="buymeacoffee.com/ronthekiehn" target="_blank" rel="noreferrer" class="hover:underline  text-yellow-200">buy me a coffee</a> -->
           </div>
           <div class="motion-preset-slide-right-sm my-2 divider glow-divider w-full max-w-[552px]"></div>
@@ -61,21 +61,26 @@ const mainProjects = [
             <span class="font-bold">contact me</span>
             <span class="pointer-events-none"><span class="pointer-events-auto select-text">goliveiracoll@gmail.com</span></span>
             <span>or on
-              <a href="https://github.com/oliveirag" target="_blank" rel="noreferrer" class="link">github</a>,
-              <a href="https://www.linkedin.com/in/notgui/" target="_blank" rel="noreferrer" class="link">linkedin</a>,
-              <a href="https://x.com/guiwastaken" target="_blank" rel="noreferrer" class="link">twitter</a>,
-              <a href="https://www.instagram.com/notgui/" target="_blank" rel="noreferrer" class="link">instagram</a>.
+              <a href="https://github.com/oliveirag" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-gray-600 dark:text-gray-400">github</a>,
+              <a href="https://www.linkedin.com/in/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-blue-600 dark:text-blue-500">linkedin</a>,
+              <a href="https://x.com/guiwastaken" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-sky-600 dark:text-blue-300">twitter</a>,
+              <a href="https://www.instagram.com/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-orange-600 dark:text-orange-500">instagram</a>.
             </span>
           </div>
           <div class="my-2 divider glow-divider w-full max-w-[552px] motion-preset-slide-right-sm motion-delay-75"></div>
           <div id="tech-stack" class="flex flex-col motion-preset-slide-right-sm motion-delay-150">
             <span class="font-bold">tech stack</span>
-            <span>python, javascript/typescript, swift, java, and c/c++</span>
+            <span><span class="text-blue-600 dark:text-blue-400">python</span>, <span class="text-yellow-600 dark:text-yellow-300">javascript</span>/<span class="text-blue-500 dark:text-blue-300">typescript</span>, <span class="text-orange-600 dark:text-orange-400">swift</span>, <span class="text-red-600 dark:text-red-500">java</span>, and <span class="text-orange-500 dark:text-orange-300">c/c++</span></span>
           </div>
           <div class="my-2 divider glow-divider w-full max-w-[552px] motion-preset-slide-right-sm motion-delay-100"></div>
           <div id="about-site" class="flex flex-col motion-preset-slide-right-sm motion-delay-150">
             <span class="font-bold">about this site</span>
-            <span>built with astro, jquery, react, and tailwind.</span>
+            <span>built with
+              <span class="text-red-600 dark:text-red-400">astro</span>,
+              <span class="text-blue-700 dark:text-blue-500">jquery</span>,
+              <span class="text-sky-600 dark:text-blue-100">react</span>, and
+              <span class="text-cyan-600 dark:text-blue-300">tailwind</span>.
+            </span>
             <a href="https://github.com/oliveirag/Website" target="_blank" rel="noreferrer" class="link w-fit">view the source code here</a>
           </div>
         </div>
@@ -215,8 +220,10 @@ const mainProjects = [
             const $repoList = $('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>');
             
             data.repositories.forEach((repo, index) => {
-              const bgClass = index < 3 ? 'bg-surface border rounded-md p-2' : '';
-              const rank = index < 3 ? `<span class="text-tertiary">#${index + 1}</span> ` : '';
+              const rankColors = ['text-amber-600 dark:text-amber-400', 'text-zinc-500 dark:text-zinc-200', 'text-amber-700 dark:text-amber-600'];
+              const bgColors = ['bg-amber-400/5', 'bg-zinc-200/5', 'bg-amber-600/5'];
+              const bgClass = index < 3 ? `${bgColors[index]} border rounded-md p-2` : '';
+              const rank = index < 3 ? `<span class="${rankColors[index]}">#${index + 1}</span> ` : '';
               const $repoCard = $(`
                 <div class="flex flex-col items-center text-center ${bgClass}">
                   <div class="flex items-center gap-2 mb-1">
@@ -272,3 +279,37 @@ const mainProjects = [
   animation-iteration-count: 1, 5;  /* Type once, blink 5 times */
 }
   </style>
+
+<style is:global>
+.rainbow-letters {
+  background: linear-gradient(
+    90deg,
+    #fbbf24,
+    #ec4899,
+    #8b5cf6,
+    #06b6d4,
+    #10b981,
+    #fbbf24
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-flow 2s linear infinite;
+}
+
+@keyframes gradient-flow {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rainbow-letters {
+    animation: none;
+  }
+}
+</style>
