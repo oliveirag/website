@@ -1,4 +1,5 @@
 ---
+import SpeedInsights from '@vercel/speed-insights/astro';
 interface Props {
   title: string;
 }
@@ -34,5 +35,6 @@ import '../styles/tokens.css';
       //   $('#page-load').text(`${Math.round(pageLoadTime)}ms`);
       // });
     </script>
+    <SpeedInsights />
   </body>
 </html>
