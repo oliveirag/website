@@ -5,6 +5,7 @@ interface Props {
 
 const { title } = Astro.props;
 import '../styles/scrollbar.css';
+import '../styles/tokens.css';
 ---
 
 <html lang="en" class="no-scrollbar">
@@ -14,9 +15,11 @@ import '../styles/scrollbar.css';
     <meta name="description" content="peep the website">
     <title>{title}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
     <link rel="icon" href="/images/globe.png" type="image/png">
   </head>
-  <body class="bg-neutral-900 text-white no-scrollbar overflow-x-hidden font-sans">
+  <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
     <main class="flex justify-center relative z-10 no-scrollbar">
         <slot />
         <!-- <div class="absolute top-0 right-1/2 translate-x-1/2 md:translate-x-0 md:right-2 text-xs">

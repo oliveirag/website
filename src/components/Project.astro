@@ -1,5 +1,4 @@
 ---
-import '../styles/hover.css';
 interface Props {
     title: string;
     languages: string;
@@ -11,50 +10,31 @@ interface Props {
 import GithubIcon from '../icons/GithubIcon.astro';
 import ExternalLink from '../icons/ExternalLink.astro';
 
-const { title, languages, description, github, url, image } = Astro.props;
+const { title, description, github, url, image } = Astro.props;
+const href = url ?? github;
+const isGithub = href?.startsWith('https://github.com');
 ---
 
-<div class='relative project inset-0 bg-zinc-600 rounded-[20px] h-[130px] w-full'>
-    <div class="absolute inset-0 bg-gradient-radial rounded-[20px] z-0"></div>
-
-    <div class="flex items-center gap-4 relative m-[2px] bg-black group hover:bg-zinc-900 transition-colors rounded-[18.5px] p-4 z-10 h-[126px] overflow-hidden">
-        {image && 
-    
-                <img src={image} alt={title} class="mx-2 w-14 h-14 rounded aspect-square" />
-        
-        }
-        {url && 
-            <a class="absolute inset-0 z-20" href={url} target="_blank" rel="noreferrer">
-                <span class="sr-only">{title} - open project</span>
-            </a>
-        }
-        <div class="h-full w-full ">
-        <div class="mb-2 flex w-full align-middle justify-between relative">
-            <span class="flex sm:gap-1 items-center font-bold text-lg sm:text-xl transition-all truncate group pointer-events-none">
+<a
+    href={href}
+    target="_blank"
+    rel="noreferrer"
+    class="project glow-border interactive group flex items-center gap-4 rounded-lg p-4 h-32 w-full overflow-hidden"
+>
+    {image && <img src={image} alt="" class="mx-2 w-14 h-14 rounded aspect-square shrink-0" />}
+    <div class="h-full w-full min-w-0">
+        <div class="mb-2 flex w-full items-center justify-between gap-2">
+            <span class="flex items-center gap-1 font-bold text-lg sm:text-xl text-primary truncate">
                 {title}
-                
-                {url && 
-                    <div class="opacity-0 transition-opacity group-hover:opacity-100">
-                        <ExternalLink class="w-[14px] h-[14px]"/>
-                    </div>
-                }
             </span>
-            
-            {github && 
-                <a class="hover:scale-105 transition-all shrink-0 relative z-30" 
-                href={github} 
-                target="_blank" 
-                rel="noreferrer"
-                onclick="event.stopPropagation()">
-                    <GithubIcon class="w-7 h-7"/>
-                </a>
-            }
+            <span class="shrink-0 text-icon-secondary group-hover:text-icon-primary transition-colors duration-fast ease-out" aria-hidden="true">
+                {isGithub ? <GithubIcon class="w-6 h-6" /> : <ExternalLink class="w-4 h-4" />}
+            </span>
         </div>
-        <!-- <span class="leading-none text-xs font-normal text-zinc-400">{languages}</span> -->
-        <p class="line-clamp-3 text-zinc-300 text-sm  w-5/6 pointer-events-none">{description}</p>
+        <p class="line-clamp-3 text-secondary text-sm w-5/6">{description}</p>
     </div>
-    </div>
-</div>
+    <span class="sr-only">{isGithub ? 'view source on github' : 'open project'}</span>
+</a>
 
 <script>
   import { initializeHover } from '../scripts/hover.js';
