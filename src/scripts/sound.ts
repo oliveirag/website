@@ -85,6 +85,8 @@ function createAmbience(src: string) {
 function updateAmbience() {
   const shouldPlay = unlocked && !muted && document.visibilityState === 'visible' && files.ambience;
   if (shouldPlay) {
+    // Also wakes the AudioContext, which some browsers suspend while the tab is hidden.
+    audio();
     ambience ??= createAmbience(files.ambience!);
     clearTimeout(pauseTimer);
     const { element, gain } = ambience;
