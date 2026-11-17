@@ -22,7 +22,8 @@ import { introCustomProperties } from '../scripts/scene-palette';
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: var(--intro-background);
+    /* The Field's own sky (see Field.astro), without the grass. The drawing blends onto it. */
+    background: linear-gradient(to bottom, var(--sky-top), var(--sky-horizon) calc(100% - var(--field-height)));
     color: var(--intro-ink);
     opacity: 1;
     cursor: pointer;
@@ -96,12 +97,12 @@ import { introCustomProperties } from '../scripts/scene-palette';
 </style>
 
 <script>
-  import { startIntro } from '../scripts/intro';
+  import { introState, startIntro } from '../scripts/intro';
   import { onEveryPage } from '../scripts/page-lifecycle';
 
   onEveryPage(() => {
     const intro = document.getElementById('intro');
-    if (!intro || document.documentElement.getAttribute('data-intro') !== 'showing') return;
+    if (!intro || introState() !== 'showing') return;
     return startIntro(intro);
   });
 </script>

@@ -71,6 +71,21 @@ for (const key of ['Enter', 'Space', 'Tab', 'Escape', 'g']) {
   });
 }
 
+test('a character typed with AltGr (Ctrl and Alt on Windows) ends the Intro', async ({ page }) => {
+  await page.goto('/');
+  await expect(intro(page)).toBeFocused();
+  await page.keyboard.press('Control+Alt+KeyE');
+  await expectHomeShown(page);
+});
+
+test('a browser shortcut is left to the browser and does not end the Intro', async ({ page }) => {
+  await page.goto('/');
+  await expect(intro(page)).toBeFocused();
+  await page.keyboard.press('Control+KeyA');
+  await page.keyboard.press('Meta+KeyA');
+  await expect(intro(page)).toBeVisible();
+});
+
 test('a click on the skip control ends the Intro', async ({ page }) => {
   await page.goto('/');
   const skip = intro(page).getByRole('button', { name: 'skip intro' });
@@ -107,20 +122,21 @@ for (const route of ['/top-5', '/chatbot', '/thoughts', '/videos']) {
     await page.goto(route);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.locator('html')).not.toHaveAttribute('data-intro');
   });
 }
 
-test('arriving at Home from another page for the first time this session shows the Intro there', async ({ page }) => {
+test('"projects" from another page goes straight to Projects, with no Intro', async ({ page }) => {
   await page.goto('/top-5');
   await page.getByRole('link', { name: 'projects' }).click();
   await expect(page).toHaveURL(/\/#projects$/);
-  await expect(intro(page)).toBeVisible();
-  await expect(intro(page)).toBeFocused();
-
-  await page.keyboard.press('Enter');
+  await expect(page.locator('#projects')).toBeInViewport();
   await expect(intro(page)).toBeHidden();
-  await expect(homeHeading(page)).toBeFocused();
+});
+
+test('a direct link to Projects on Home shows no Intro', async ({ page }) => {
+  await page.goto('/#projects');
+  await expect(page.locator('#projects')).toBeInViewport();
+  await expect(intro(page)).toBeHidden();
 });
 
 test('ending the Intro starts the sound', async ({ page }) => {
@@ -185,22 +201,25 @@ test('the drawing is under the pointer across the screen, so the flowers can lea
   }
 });
 
-test('the Intro is drawn in the current theme on a background that matches the sky', async ({ page }) => {
+// The sky the Field paints behind the grass, which the Intro has to show unchanged.
+const fieldSky = (page: Page) => page.locator('.field-sky').evaluate((sky) => getComputedStyle(sky).backgroundImage);
+
+test('in Night the Intro is drawn in the Night palette on the Field\'s own sky', async ({ page }) => {
+  await page.goto('/');
+  await expect(intro(page)).toHaveCSS('background-image', await fieldSky(page));
+  await expect(intro(page)).toHaveCSS('background-image', /rgb\(5, 10, 28\)/);
+  await expect(intro(page).locator('[data-palette]')).toHaveAttribute('data-palette', 'night');
+});
+
+test('in Day the Intro is drawn in the Day palette on the Field\'s own sky', async ({ page }) => {
   await page.goto('/top-5');
   await page.getByRole('button', { name: /^theme:/ }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'day');
 
   await page.goto('/');
-  await expect(intro(page)).toHaveCSS('background-color', 'rgb(223, 233, 232)');
+  await expect(intro(page)).toHaveCSS('background-image', await fieldSky(page));
+  await expect(intro(page)).toHaveCSS('background-image', /rgb\(196, 219, 243\)/);
   await expect(intro(page).locator('[data-palette]')).toHaveAttribute('data-palette', 'day');
-  // In Day the Intro's background is the colour the Field's sky reaches at the horizon.
-  await expect(page.locator('.field-sky')).toHaveCSS('background-image', /rgb\(223, 233, 232\)/);
-});
-
-test('in Night the Intro is drawn in the Night palette', async ({ page }) => {
-  await page.goto('/');
-  await expect(intro(page)).toHaveCSS('background-color', 'rgb(11, 18, 32)');
-  await expect(intro(page).locator('[data-palette]')).toHaveAttribute('data-palette', 'night');
 });
 
 test('the Intro covers Home from the first paint, before any page script runs', async ({ page }) => {
