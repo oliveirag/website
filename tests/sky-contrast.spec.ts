@@ -1,11 +1,14 @@
 import { test, expect, reply, type Page } from './fixtures';
+import { type Rgba, rgbaFromHex, contrastRatio, compositeOver, formatRatio } from './contrast';
 
 // Every piece of text on Home that sits on the sky must reach 4.5:1 (WCAG AA) wherever it can be: content
 // scrolls from the top of the sky down to just above the horizon, so it is checked against both ends.
 // Text on a card, button or other surface is on that surface's colour instead.
+// Contrast can't be observed without reading canvas pixels, which the tests never do, so this reads the
+// computed colours a visitor sees and the sky's two end colours from the custom properties the Field paints
+// with. A throwaway probe confirmed the WebGL scene draws exactly those colours at the top and the horizon.
 const AA = 4.5;
 
-type Rgba = [number, number, number, number];
 type Found = {
   text: string;
   /** Every colour the text is drawn in: one, or the stops (and blends between them) of a gradient fill. */
@@ -15,25 +18,6 @@ type Found = {
   /** An opaque background the text sits on instead of the sky, if any. */
   surface: Rgba | null;
 };
-
-function channel(v: number) {
-  const c = v / 255;
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
-const luminance = ([r, g, b]: Rgba) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-const over = ([r, g, b, a]: Rgba, [R, G, B]: Rgba): Rgba => [r * a + R * (1 - a), g * a + G * (1 - a), b * a + B * (1 - a), 1];
-function ratio(text: Rgba, background: Rgba) {
-  const fg = luminance(over(text, background));
-  const bg = luminance(background);
-  return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
-}
-// Truncated, never rounded up, so a reported 4.5 really is at least 4.5.
-const show = (r: number) => (Math.floor(r * 100) / 100).toFixed(2);
-
-function parseHex(hex: string): Rgba {
-  const n = parseInt(hex.trim().slice(1), 16);
-  return [n >> 16, (n >> 8) & 255, n & 255, 1];
-}
 
 async function findText(page: Page): Promise<Found[]> {
   return page.evaluate(() => {
@@ -115,7 +99,7 @@ async function skyEnds(page: Page) {
     const root = getComputedStyle(document.documentElement);
     return [root.getPropertyValue('--sky-top'), root.getPropertyValue('--sky-horizon')];
   });
-  return { top: parseHex(top), horizon: parseHex(horizon) };
+  return { top: rgbaFromHex(top), horizon: rgbaFromHex(horizon) };
 }
 
 const commitsStates = {
@@ -139,12 +123,12 @@ for (const theme of ['night', 'day'] as const) {
         const backgrounds = surface
           ? { surface }
           : {
-              top: overlays.reduceRight((under, layer) => over(layer, under), sky.top),
-              horizon: overlays.reduceRight((under, layer) => over(layer, under), sky.horizon),
+              top: overlays.reduceRight((under, layer) => compositeOver(layer, under), sky.top),
+              horizon: overlays.reduceRight((under, layer) => compositeOver(layer, under), sky.horizon),
             };
-        const worst = Object.entries(backgrounds).map(([where, bg]) => [where, Math.min(...colours.map((c) => ratio(c, bg)))] as const);
-        rows.push(`${text} | ${worst.map(([where, r]) => `${where} ${show(r)}`).join(' | ')}`);
-        for (const [where, r] of worst) if (r < AA) failures.push(`"${text}" is ${show(r)}:1 at the ${where}`);
+        const worst = Object.entries(backgrounds).map(([where, bg]) => [where, Math.min(...colours.map((c) => contrastRatio(c, bg)))] as const);
+        rows.push(`${text} | ${worst.map(([where, r]) => `${where} ${formatRatio(r)}`).join(' | ')}`);
+        for (const [where, r] of worst) if (r < AA) failures.push(`"${text}" is ${formatRatio(r)}:1 at the ${where}`);
       }
       if (process.env.PRINT_CONTRAST) console.log(`\n${theme} (Commits ${state})\n${rows.join('\n')}`);
       expect(failures).toEqual([]);
@@ -156,12 +140,11 @@ test('no tertiary text sits on the sky on Home, in either theme', async ({ page 
   // Day's tertiary grey can't reach 4.5:1 on any blue sky, so Home keeps it on surfaces only.
   for (const theme of ['night', 'day'] as const) {
     await openHome(page, theme);
-    const tertiary = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-tertiary').trim());
+    const [tr, tg, tb] = rgbaFromHex(
+      await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-tertiary')),
+    );
     const found = await findText(page);
-    const tertiaryOnSky = found.filter(({ colours, surface }) => !surface && colours.some(([r, g, b]) => {
-      const n = parseInt(tertiary.slice(1), 16);
-      return r === n >> 16 && g === ((n >> 8) & 255) && b === (n & 255);
-    }));
+    const tertiaryOnSky = found.filter(({ colours, surface }) => !surface && colours.some(([r, g, b]) => r === tr && g === tg && b === tb));
     expect(tertiaryOnSky.map((f) => f.text), theme).toEqual([]);
   }
 });
