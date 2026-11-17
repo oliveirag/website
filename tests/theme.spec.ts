@@ -33,6 +33,21 @@ test('the toggle switches between Night and Day and names the theme that is on',
   await expect(themeToggle(page)).toHaveAccessibleName('theme: night');
 });
 
+test('the toggle is a small icon that shows a moon in Night and a sun in Day, named on hover', async ({ page }) => {
+  // The tooltip a visitor sees on hover is the title of the icon that is showing.
+  const hoverLabel = themeToggle(page).locator('svg:visible title');
+  await page.goto('/');
+  await expect(hoverLabel).toHaveText('Moon');
+  const box = (await themeToggle(page).boundingBox())!;
+  expect([box.width, box.height]).toEqual([32, 32]);
+
+  await themeToggle(page).click();
+  await expect(hoverLabel).toHaveText('Sun');
+
+  await page.reload();
+  await expect(hoverLabel).toHaveText('Sun');
+});
+
 test('switching theme is announced to assistive tech', async ({ page }) => {
   await page.goto('/');
   // Nothing is announced on load: the button's name already says the theme.
