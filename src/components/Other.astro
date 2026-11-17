@@ -28,16 +28,17 @@ const topVideoGames = [
 
 <section class="flex flex-col gap-6">
     <div class="flex flex-col">
-        <span class="text-lg font-bold">top 5</span>
+        <h1 class="text-lg font-bold">top 5</h1>
         <span class="text-sm text-secondary">my favorite media (updated dec 2025) </span>
     </div>
 
+    <!-- Each row is centred while it fits and starts at the left once it scrolls, so no poster is cut off. -->
     <!-- Movies -->
     <div id="movies" class="py-2">
         <div class="flex items-center justify-center mb-4">
             <span class="font-bold text-sm">movies</span>
         </div>
-        <div class="flex gap-3 overflow-x-auto pb-2 justify-center">
+        <div class="flex gap-3 overflow-x-auto pb-2 [justify-content:safe_center]">
             {topMovies.map((movie, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
@@ -63,7 +64,7 @@ const topVideoGames = [
         <div class="flex items-center justify-center mb-4">
             <span class="font-bold text-sm">anime</span>
         </div>
-        <div class="flex gap-3 overflow-x-auto pb-2 justify-center">
+        <div class="flex gap-3 overflow-x-auto pb-2 [justify-content:safe_center]">
             {topAnime.map((anime, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
@@ -89,7 +90,7 @@ const topVideoGames = [
         <div class="flex items-center justify-center mb-4">
             <span class="font-bold text-sm">video games</span>
         </div>
-        <div class="flex gap-3 overflow-x-auto pb-2 justify-center">
+        <div class="flex gap-3 overflow-x-auto pb-2 [justify-content:safe_center]">
             {topVideoGames.map((game, index) => (
                 <div class="flex flex-col items-center gap-2 min-w-[100px]">
                     <div class="relative">
