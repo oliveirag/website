@@ -1,23 +1,63 @@
 ---
-// Switches between Night and Day. Which label shows is decided by CSS on <html data-theme>,
-// so the button is right from first paint and its accessible name always says the theme that is on.
+// Switches between Night and Day: a small icon button, a moon in Night and a sun in Day.
+// Which icon shows is decided by CSS on <html data-theme>, so the button is right from first paint,
+// and its accessible name always says the theme that is on. Hovering shows the icon's name.
 import MoonIcon from '../icons/MoonIcon.astro';
 import SunIcon from '../icons/SunIcon.astro';
 ---
 
-<button
-  type="button"
-  id="theme-toggle"
-  class="inline-flex items-center gap-2 h-11 min-w-11 px-3 rounded-md border border-control text-secondary bg-page transition-colors duration-fast ease-out hover:text-primary hover:border-control-hover"
->
-  <span class="sr-only">theme: </span>
-  <span class="theme-toggle-night inline-flex items-center gap-2"><MoonIcon />night</span>
-  <span class="theme-toggle-day inline-flex items-center gap-2"><SunIcon />day</span>
+<button type="button" id="theme-toggle" class="theme-toggle">
+  <span class="sr-only theme-toggle-night">theme: night</span>
+  <span class="sr-only theme-toggle-day">theme: day</span>
+  <MoonIcon class="theme-toggle-night" title="Moon" />
+  <SunIcon class="theme-toggle-day" title="Sun" />
 </button>
 <!-- Not every screen reader reads out a focused button's new name, so a switch is also announced here. -->
 <span id="theme-announcement" role="status" class="sr-only"></span>
 
 <style is:global>
+  .theme-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-base),
+      background-color var(--duration-base),
+      transform var(--duration-press) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .theme-toggle:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+  }
+  .theme-toggle:active {
+    transform: scale(0.95);
+  }
+  .theme-toggle:focus-visible {
+    color: var(--text-primary);
+  }
+  /* Small to look at, but a full 44px to tap on touch screens. */
+  @media (pointer: coarse) {
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle:active {
+      transform: none;
+    }
+  }
+
   [data-theme='night'] .theme-toggle-day,
   [data-theme='day'] .theme-toggle-night {
     display: none;
