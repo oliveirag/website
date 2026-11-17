@@ -1,6 +1,6 @@
 import type { Theme } from './preferences';
 
-// Every scene colour for one theme. The Field reads `field`; the Intro (a later ticket) reads `intro`.
+// Every scene colour for one theme. The Field reads `field`; the Intro reads `intro`.
 // Starting values are the prototype's from the spec. Tune them here and nowhere else.
 export interface ScenePalette {
   field: {
@@ -14,7 +14,12 @@ export interface ScenePalette {
     horizonColour: string;
   };
   intro: {
-    background: string;
+    /**
+     * How the drawing sits on the Field's sky. Bloom Type paints an opaque background, so it is painted
+     * black and screened onto a dark sky, or white and multiplied onto a light one: the background drops
+     * out and only the name and flowers show over the real sky.
+     */
+    blend: 'screen' | 'multiply';
     name: string;
     blooms: string;
     stems: string;
@@ -37,7 +42,7 @@ export const scenePalettes: Record<Theme, ScenePalette> = {
       skyTop: '#050a1c',
       horizonColour: '#1b2a4a',
     },
-    intro: { background: '#0b1220', name: '#f4f1e8', blooms: '#f2c879', stems: '#5f8f68', leaves: '#5f8f68' },
+    intro: { blend: 'screen', name: '#f4f1e8', blooms: '#f2c879', stems: '#5f8f68', leaves: '#5f8f68' },
   },
   day: {
     field: {
@@ -49,15 +54,22 @@ export const scenePalettes: Record<Theme, ScenePalette> = {
       skyTop: '#c4dbf3',
       horizonColour: '#dfe9e8',
     },
-    intro: { background: '#dfe9e8', name: '#14301a', blooms: '#e8663d', stems: '#2f6b35', leaves: '#3f7f3a' },
+    intro: { blend: 'multiply', name: '#14301a', blooms: '#e8663d', stems: '#2f6b35', leaves: '#3f7f3a' },
   },
 };
 
+// One CSS rule per theme, keyed on <html data-theme>, with Night as the default.
+function perTheme(declarations: (palette: ScenePalette) => string) {
+  return (Object.keys(scenePalettes) as Theme[])
+    .map((theme) => {
+      const selector = theme === 'night' ? ':root' : `:root[data-theme="${theme}"]`;
+      return `${selector} { ${declarations(scenePalettes[theme])} }`;
+    })
+    .join('\n');
+}
+
 // The sky as CSS custom properties per theme, so the page can paint it before (or without) the scene.
-export const skyCustomProperties = (Object.keys(scenePalettes) as Theme[])
-  .map((theme) => {
-    const { skyTop, horizonColour } = scenePalettes[theme].field;
-    const selector = theme === 'night' ? ':root' : `:root[data-theme="${theme}"]`;
-    return `${selector} { --sky-top: ${skyTop}; --sky-horizon: ${horizonColour}; }`;
-  })
-  .join('\n');
+export const skyCustomProperties = perTheme(({ field }) => `--sky-top: ${field.skyTop}; --sky-horizon: ${field.horizonColour};`);
+
+// The Intro's text colour per theme, so its hint and skip control are right from first paint.
+export const introCustomProperties = perTheme(({ intro }) => `--intro-ink: ${intro.name};`);

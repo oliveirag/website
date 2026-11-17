@@ -46,9 +46,22 @@ export async function stubApis(page: Page, { nowPlaying, commits: commitsHandler
 // The Grass scene only runs in tests that ask for it with `test.use({ scene: true })`. Elsewhere WebGL2 is
 // unavailable, as in browsers without it: headless Chromium draws WebGL in software, and a full-screen scene
 // in every parallel test starves the machine. No test depends on what the scene draws.
-export const test = base.extend<{ scene: boolean }>({
+// The Intro only shows in tests that ask for it with `test.use({ intro: true })`. Elsewhere the visitor has
+// already seen it this session, so Home opens straight onto the page. This is the one place a test knows the
+// Preferences storage key, and only to set up a visitor, never to check a result.
+export const test = base.extend<{ scene: boolean; intro: boolean }>({
   scene: [false, { option: true }],
-  page: async ({ page, scene }, use) => {
+  intro: [false, { option: true }],
+  page: async ({ page, scene, intro }, use) => {
+    if (!intro) {
+      await page.addInitScript(() => {
+        try {
+          sessionStorage.setItem('notgui:intro-seen', 'true');
+        } catch {
+          // Storage is blocked in this test: the page falls back to its defaults either way.
+        }
+      });
+    }
     if (!scene) {
       await page.addInitScript(() => {
         const getContext = HTMLCanvasElement.prototype.getContext;
