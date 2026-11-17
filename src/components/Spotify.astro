@@ -2,49 +2,79 @@
 import SpotifyIcon from '../icons/SpotifyIcon.astro';
 ---
 
-<div class="spotify-hover glow-border h-12 w-1/2 md:w-64 rounded-lg p-2 flex items-center">
+<section
+    id="now-playing"
+    aria-label="Now Playing"
+    aria-live="polite"
+    class="spotify-hover glow-border h-12 w-1/2 md:w-64 rounded-lg p-2 flex items-center"
+>
     <SpotifyIcon />
-    <div id="loading" class="my-auto text-sm text-secondary">Loading...</div>
-    <div id="spotify-content" class="flex items-center flex-1 min-w-0">
-        <div id="offline" class="hidden my-auto text-sm text-secondary">
-            Currently offline
-        </div>
-        <div id="song" class="text-xs w-full">
-            <strong id="song-title" class="block truncate text-primary"></strong>
-            <p id="song-artist" class="block truncate text-secondary"></p>
+    <div class="flex items-center flex-1 min-w-0">
+        <div id="now-playing-status" class="my-auto text-sm text-secondary">Loading...</div>
+        <div id="now-playing-song" class="hidden text-xs w-full">
+            <strong id="now-playing-title" class="block truncate text-primary"></strong>
+            <p id="now-playing-artist" class="block truncate text-secondary"></p>
         </div>
     </div>
-</div>
+</section>
 
 <script>
   import { initializeHover } from '../scripts/hover.js';
-  import $ from 'jquery';
 
-  $(document).ready(function() {
-    // Initialize hover effect
-    initializeHover('.spotify-hover');
-    
-    const fetchNowPlaying = () => {
-      $.getJSON('https://my-website-spotify-api.vercel.app/api/spotify', function(data) {
-        $('#loading').hide();
-        $('#spotify-content').show();
+  const NOW_PLAYING_URL = 'https://my-website-spotify-api.vercel.app/api/spotify';
+  const POLL_MS = 10_000;
 
-        if (data) {
-          $('#offline').hide();
-          $('#song').show();
-          $('#song-title').text(data.title);
-          $('#song-artist').text(data.artist);
-        } else {
-          $('#song').hide();
-          $('#offline').show();
-        }
-      }).fail(function() {
-        console.error('Error fetching now playing data');
-      });
-    };
+  type Track = { title: string; artist: string };
+  type State = { name: 'playing'; track: Track } | { name: 'offline' } | { name: 'error' };
 
-    // Initial fetch and set interval
-    fetchNowPlaying();
-    setInterval(fetchNowPlaying, 10000);
-  });
+  const status = document.getElementById('now-playing-status')!;
+  const song = document.getElementById('now-playing-song')!;
+  const title = document.getElementById('now-playing-title')!;
+  const artist = document.getElementById('now-playing-artist')!;
+
+  // The proxy answers 200 with a track, 204 with no body when offline, and 500 when it fails.
+  async function fetchState(): Promise<State> {
+    try {
+      const res = await fetch(NOW_PLAYING_URL);
+      if (!res.ok) return { name: 'error' };
+      if (res.status === 204) return { name: 'offline' };
+      const data = await res.json();
+      if (data && typeof data.title === 'string') {
+        return { name: 'playing', track: { title: data.title, artist: String(data.artist ?? '') } };
+      }
+      return { name: 'offline' };
+    } catch {
+      return { name: 'error' };
+    }
+  }
+
+  function render(state: State) {
+    if (state.name === 'playing') {
+      title.textContent = state.track.title;
+      artist.textContent = state.track.artist;
+      status.textContent = '';
+      status.classList.add('hidden');
+      song.classList.remove('hidden');
+      return;
+    }
+    title.textContent = '';
+    artist.textContent = '';
+    song.classList.add('hidden');
+    status.textContent = state.name === 'offline' ? 'Currently offline' : "Couldn't load";
+    status.classList.remove('hidden');
+  }
+
+  // Redraw only when something changed, so the live region doesn't re-announce the same track every poll.
+  let lastRendered = '';
+  async function refresh() {
+    const state = await fetchState();
+    const key = JSON.stringify(state);
+    if (key === lastRendered) return;
+    lastRendered = key;
+    render(state);
+  }
+
+  initializeHover('.spotify-hover');
+  refresh();
+  setInterval(refresh, POLL_MS);
 </script>
