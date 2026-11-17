@@ -1,0 +1,41 @@
+/* Instrument Serif: my name and page titles only (ADR-0001). Everything else stays JetBrains Mono.
+   The file is the one that came with the Bloom Type export, and its licence is src/designely/FONT_LICENSE.txt.
+   Bloom Type loads the same file for the Intro, so the browser fetches it once. */
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('/fonts/instrument-serif-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+}
+
+/* Every page title is the h1 in the Sky. Set here, in the frame, so pages don't each opt in.
+   The id selector beats utility classes on purpose: the font has one weight, so a font-bold on a title
+   would make the browser fake one. */
+#sky h1 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  letter-spacing: 0;
+}
+
+/* My name on Home: the large heading the Intro's name settles into. */
+#sky h1.home-name {
+  font-size: 3rem;
+  line-height: 1;
+}
+@media (min-width: 640px) {
+  #sky h1.home-name {
+    font-size: 4.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  #sky h1.home-name {
+    font-size: 5.5rem;
+  }
+}

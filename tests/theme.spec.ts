@@ -2,7 +2,7 @@ import { test, expect, type Page } from './fixtures';
 
 // What a visitor sees in each theme: the page background, and a coloured word that uses a dark-variant class.
 const NIGHT = { background: 'rgb(23, 23, 23)', ucf: 'rgb(250, 204, 21)' };
-const DAY = { background: 'rgb(255, 255, 255)', ucf: 'rgb(202, 138, 4)' };
+const DAY = { background: 'rgb(255, 255, 255)', ucf: 'rgb(133, 77, 14)' };
 
 async function expectTheme(page: Page, theme: typeof NIGHT) {
   await expect(page.locator('body')).toHaveCSS('background-color', theme.background);
