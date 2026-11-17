@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import '../styles/scrollbar.css';
 import { ArrowIcon } from '../icons/ArrowIcon';
+import { playCue } from '../scripts/sound';
 
 const myApi = 'https://my-website-spotify-api.vercel.app';
 
@@ -43,6 +44,8 @@ const Chatbot = () => {
   const handleSubmit = async (event, retryCount = 0) => {
     if (event) {
       event.preventDefault();
+      // Only a send by the visitor plays the Cue, not the automatic retries below.
+      playCue('chatbot');
     } else {
       errorInput = writeHistory[writeHistory.length - 1]?.text || '';
       setWriteHistory((prev) => [

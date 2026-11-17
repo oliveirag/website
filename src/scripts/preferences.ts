@@ -88,3 +88,13 @@ export const themeBeforePaintScript = `(function () {
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', ${JSON.stringify(themeColors)}[theme]);
 })();`;
+
+// Inline script for <head>: marks a muted visitor's sound as muted before first paint, so the sound control
+// shows off from the start. The states are the sound engine's (see sound.ts); the page ships with "locked".
+export const mutedBeforePaintScript = `(function () {
+  try {
+    if (JSON.parse(localStorage.getItem(${JSON.stringify(definitions.muted.key)})) === true) {
+      document.documentElement.setAttribute('data-sound', 'muted');
+    }
+  } catch (error) {}
+})();`;

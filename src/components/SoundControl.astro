@@ -1,0 +1,89 @@
+---
+// The sound control: the one switch for the Ambience and the Cues, fixed in the bottom left just above the
+// grass line. Whether it shows on or off is decided by CSS on <html data-sound>, so it is right from first
+// paint, and its accessible name always says which it is. It also starts the sound engine.
+import SoundOnIcon from '../icons/SoundOnIcon.astro';
+import SoundOffIcon from '../icons/SoundOffIcon.astro';
+import { soundFiles } from '../scripts/sound-files';
+---
+
+<button type="button" id="sound-control" class="sound-control" data-sound-files={JSON.stringify(soundFiles())}>
+  <span class="sr-only sound-control-on">sound: on</span>
+  <span class="sr-only sound-control-off">sound: off</span>
+  <SoundOnIcon class="sound-control-on" />
+  <SoundOffIcon class="sound-control-off" />
+  <span class="sound-control-on" aria-hidden="true">on</span>
+  <span class="sound-control-off" aria-hidden="true">off</span>
+</button>
+<!-- Not every screen reader reads out a focused button's new name, so a switch is also announced here. -->
+<span id="sound-announcement" aria-live="polite" class="sr-only"></span>
+
+<style is:global>
+  .sound-control {
+    position: fixed;
+    left: 16px;
+    /* Sits on the Sky's bottom edge, the same line the Sky stops at, so it never reaches the grass. */
+    bottom: calc(var(--field-height) + var(--sky-gap));
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-press) var(--ease-out);
+  }
+  @media (min-width: 640px) {
+    .sound-control {
+      left: 32px;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .sound-control:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+  }
+  .sound-control:active {
+    transform: scale(0.95);
+  }
+  .sound-control:focus-visible {
+    color: var(--text-primary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sound-control:active {
+      transform: none;
+    }
+  }
+
+  [data-sound='muted'] .sound-control-on,
+  :root:not([data-sound='muted']) .sound-control-off {
+    display: none;
+  }
+</style>
+
+<script>
+  import { read, write } from '../scripts/preferences';
+  import { startSound } from '../scripts/sound';
+
+  const control = document.getElementById('sound-control');
+  startSound(JSON.parse(control?.dataset.soundFiles || '{}'));
+
+  // The control is replaced on every page change, so the click is caught on the document.
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest('#sound-control')) return;
+    const muted = !read('muted');
+    write('muted', muted);
+    const announcement = document.getElementById('sound-announcement');
+    if (announcement) announcement.textContent = muted ? 'sound off' : 'sound on';
+  });
+</script>
