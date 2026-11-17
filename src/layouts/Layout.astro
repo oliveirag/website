@@ -1,6 +1,8 @@
 ---
 import SpeedInsights from '@vercel/speed-insights/astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import Field from '../components/Field.astro';
+import Sky from '../components/Sky.astro';
 import { themeBeforePaintScript, themeColors } from '../scripts/preferences';
 interface Props {
   title: string;
@@ -23,13 +25,14 @@ import '../styles/tokens.css';
     <script is:inline set:html={themeBeforePaintScript} />
   </head>
   <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
-    <!-- The theme toggle sits top right until the navigation gives it its final place. -->
-    <div class="relative z-20 flex justify-end max-w-5xl mx-auto px-4 sm:px-8 pt-4">
-      <ThemeToggle />
+    <Field />
+    <!-- The theme toggle sits top right, over the Sky, until the navigation gives it its final place. -->
+    <div class="fixed top-0 inset-x-0 z-20 flex justify-end max-w-5xl mx-auto px-4 sm:px-8 pt-4 pointer-events-none">
+      <div class="pointer-events-auto"><ThemeToggle /></div>
     </div>
-    <main class="flex justify-center relative z-10 no-scrollbar">
-        <slot />
-    </main>
+    <Sky>
+      <slot />
+    </Sky>
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';

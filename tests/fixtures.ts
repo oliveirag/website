@@ -43,8 +43,20 @@ export async function stubApis(page: Page, { nowPlaying, commits: commitsHandler
 
 // Every test starts with both APIs answering successfully and no third-party traffic.
 // Routes registered later in a test take precedence over these defaults.
-export const test = base.extend({
-  page: async ({ page }, use) => {
+// The Grass scene only runs in tests that ask for it with `test.use({ scene: true })`. Elsewhere WebGL2 is
+// unavailable, as in browsers without it: headless Chromium draws WebGL in software, and a full-screen scene
+// in every parallel test starves the machine. No test depends on what the scene draws.
+export const test = base.extend<{ scene: boolean }>({
+  scene: [false, { option: true }],
+  page: async ({ page, scene }, use) => {
+    if (!scene) {
+      await page.addInitScript(() => {
+        const getContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+          return type === 'webgl2' ? null : getContext.call(this, type, ...(rest as []));
+        } as typeof getContext;
+      });
+    }
     await page.route('https://fonts.googleapis.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     await page.route('https://www.googletagmanager.com/**', (route) =>
       route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
