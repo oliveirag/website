@@ -1,8 +1,9 @@
 /* Design tokens from oliveirag/design-system (tokens/tokens.json).
-   Only the mapped and responsive tiers live here. Components read these, never raw hex. */
+   Only the mapped and responsive tiers live here. Components read these, never raw hex.
+   The theme is the data-theme attribute on <html>: Night (the default) or Day. It never follows the OS. */
 
 :root {
-  color-scheme: dark light;
+  color-scheme: dark;
 
   /* text */
   --text-primary: #FAFAFA;
@@ -49,40 +50,41 @@
   --duration-base: 200ms;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --text-primary: #171717;
-    --text-secondary: #525252;
-    --text-tertiary: #737373;
-    --text-disabled: #737373;
-    --text-action: #171717;
-    --text-action-hover: #404040;
-    --text-on-action: #FFFFFF;
-    --text-error: #DC2626;
+/* :where() keeps Day at the same specificity as :root, so the contrast rule below still wins. */
+:root:where([data-theme="day"]) {
+  color-scheme: light;
 
-    --icon-primary: #171717;
-    --icon-secondary: #525252;
-    --icon-disabled: #737373;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-tertiary: #737373;
+  --text-disabled: #737373;
+  --text-action: #171717;
+  --text-action-hover: #404040;
+  --text-on-action: #FFFFFF;
+  --text-error: #DC2626;
 
-    --surface-page: #FFFFFF;
-    --surface-default: #FAFAFA;
-    --surface-raised: #FFFFFF;
-    --surface-field: #FFFFFF;
-    --surface-hover: #F5F5F5;
-    --surface-selected: #E5E5E5;
-    --surface-action: #171717;
-    --surface-action-hover: #262626;
-    --surface-disabled: #FAFAFA;
+  --icon-primary: #171717;
+  --icon-secondary: #525252;
+  --icon-disabled: #737373;
 
-    --border-default: #E5E5E5;
-    --border-strong: #D4D4D4;
-    --border-control: #8C8C8C;
-    --border-control-hover: #525252;
-    --border-focus: #171717;
-    --border-error: #DC2626;
+  --surface-page: #FFFFFF;
+  --surface-default: #FAFAFA;
+  --surface-raised: #FFFFFF;
+  --surface-field: #FFFFFF;
+  --surface-hover: #F5F5F5;
+  --surface-selected: #E5E5E5;
+  --surface-action: #171717;
+  --surface-action-hover: #262626;
+  --surface-disabled: #FAFAFA;
 
-    --glow: rgba(23, 23, 23, 0.6);
-  }
+  --border-default: #E5E5E5;
+  --border-strong: #D4D4D4;
+  --border-control: #8C8C8C;
+  --border-control-hover: #525252;
+  --border-focus: #171717;
+  --border-error: #DC2626;
+
+  --glow: rgba(23, 23, 23, 0.6);
 }
 
 @media (prefers-contrast: more) {
