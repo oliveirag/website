@@ -7,7 +7,10 @@ export function applyTheme(theme: Theme) {
 }
 
 // Keeps the page in step with the theme preference. The head script has already applied the stored one.
+// A client-side page change copies <html>'s attributes and the theme-color meta from the new page, which
+// always says Night, so the theme is put back straight after the swap, before the new page paints.
 export function followTheme() {
   applyTheme(read('theme'));
+  document.addEventListener('astro:after-swap', () => applyTheme(read('theme')));
   return subscribe('theme', applyTheme);
 }

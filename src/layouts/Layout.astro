@@ -1,9 +1,13 @@
 ---
+// The site frame every page shares: the Field, the navigation with the theme toggle, and the Sky the page
+// fills. Pages change through Astro's client router, so the Field and the preferences carry over.
+import { ClientRouter } from 'astro:transitions';
 import SpeedInsights from '@vercel/speed-insights/astro';
-import ThemeToggle from '../components/ThemeToggle.astro';
+import Navigation from '../components/Navigation.astro';
 import Field from '../components/Field.astro';
 import Sky from '../components/Sky.astro';
 import { themeBeforePaintScript, themeColors } from '../scripts/preferences';
+import { oldLinksBeforePaintScript } from '../scripts/old-links';
 interface Props {
   title: string;
 }
@@ -13,8 +17,10 @@ import '../styles/scrollbar.css';
 import '../styles/tokens.css';
 ---
 
-<html lang="en" class="no-scrollbar" data-theme="night">
+<!-- Pages swap with no animation: the Field carries on as it is, and input is never held up by a fade. -->
+<html lang="en" class="no-scrollbar" data-theme="night" transition:animate="none">
   <head>
+    <script is:inline set:html={oldLinksBeforePaintScript} />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content="peep the website">
@@ -23,21 +29,42 @@ import '../styles/tokens.css';
     <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
     <script is:inline set:html={themeBeforePaintScript} />
+    <!-- Google tag (gtag.js). In the head and the same on every page, so it runs once per visit. -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-6LCTQSHDRD"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-6LCTQSHDRD');
+    </script>
+    <ClientRouter />
   </head>
   <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
     <Field />
-    <!-- The theme toggle sits top right, over the Sky, until the navigation gives it its final place. -->
-    <div class="fixed top-0 inset-x-0 z-20 flex justify-end max-w-5xl mx-auto px-4 sm:px-8 pt-4 pointer-events-none">
-      <div class="pointer-events-auto"><ThemeToggle /></div>
-    </div>
+    <Navigation />
     <Sky>
       <slot />
     </Sky>
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';
+      import { newAddressFor } from '../scripts/old-links';
 
       followTheme();
+
+      // An old link typed or followed while Home is already open. The hash change leaves a history entry
+      // the client router can't navigate from, so this one loads the page in full.
+      window.addEventListener('hashchange', () => {
+        const to = newAddressFor(location.pathname, location.hash);
+        if (to) location.replace(to);
+      });
+
+      // An old link followed from another page, which the client router loads without a hash change.
+      document.addEventListener('astro:before-preparation', (event) => {
+        const to = newAddressFor(event.to.pathname, event.to.hash);
+        if (to) event.to = new URL(to, event.to);
+      });
     </script>
   </body>
 </html>

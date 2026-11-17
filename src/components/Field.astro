@@ -8,7 +8,8 @@ import { skyCustomProperties } from '../scripts/scene-palette';
 
 <Fragment set:html={`<style>${skyCustomProperties}</style>`} />
 <div class="field-sky" aria-hidden="true"></div>
-<div id="field" aria-hidden="true">
+<!-- Kept across page changes, so the scene keeps running and never remounts. -->
+<div id="field" aria-hidden="true" transition:persist="field">
   <FieldScene client:only="react" />
 </div>
 

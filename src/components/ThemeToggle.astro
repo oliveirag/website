@@ -44,13 +44,11 @@ import SunIcon from '../icons/SunIcon.astro';
   .theme-toggle:focus-visible {
     color: var(--text-primary);
   }
-  /* Small to look at, but a full 44px to tap on touch screens. */
-  @media (pointer: coarse) {
-    .theme-toggle::after {
-      content: '';
-      position: absolute;
-      inset: -6px;
-    }
+  /* Small to look at, but a full 44px to click or tap. */
+  .theme-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
   }
   @media (prefers-reduced-motion: reduce) {
     .theme-toggle:active {
@@ -67,9 +65,12 @@ import SunIcon from '../icons/SunIcon.astro';
 <script>
   import { read, write } from '../scripts/preferences';
 
-  document.getElementById('theme-toggle')!.addEventListener('click', () => {
+  // The toggle is replaced on every page change, so the click is caught on the document.
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest('#theme-toggle')) return;
     const next = read('theme') === 'night' ? 'day' : 'night';
     write('theme', next);
-    document.getElementById('theme-announcement')!.textContent = `${next} is on`;
+    const announcement = document.getElementById('theme-announcement');
+    if (announcement) announcement.textContent = `${next} is on`;
   });
 </script>

@@ -20,17 +20,13 @@ import SpotifyIcon from '../icons/SpotifyIcon.astro';
 
 <script>
   import { initializeHover } from '../scripts/hover.js';
+  import { onEveryPage } from '../scripts/page-lifecycle';
 
   const NOW_PLAYING_URL = 'https://my-website-spotify-api.vercel.app/api/spotify';
   const POLL_MS = 10_000;
 
   type Track = { title: string; artist: string };
   type State = { name: 'playing'; track: Track } | { name: 'offline' } | { name: 'error' };
-
-  const status = document.getElementById('now-playing-status')!;
-  const song = document.getElementById('now-playing-song')!;
-  const title = document.getElementById('now-playing-title')!;
-  const artist = document.getElementById('now-playing-artist')!;
 
   // The proxy answers 200 with a track, 204 with no body when offline, and 500 when it fails.
   async function fetchState(): Promise<State> {
@@ -48,7 +44,13 @@ import SpotifyIcon from '../icons/SpotifyIcon.astro';
     }
   }
 
+  // Draws into the Now Playing on the page showing now: pages change, and a reply can land after a change.
   function render(state: State) {
+    const status = document.getElementById('now-playing-status');
+    const song = document.getElementById('now-playing-song');
+    const title = document.getElementById('now-playing-title');
+    const artist = document.getElementById('now-playing-artist');
+    if (!status || !song || !title || !artist) return;
     if (state.name === 'playing') {
       title.textContent = state.track.title;
       artist.textContent = state.track.artist;
@@ -75,6 +77,13 @@ import SpotifyIcon from '../icons/SpotifyIcon.astro';
   }
 
   initializeHover('.spotify-hover');
-  refresh();
-  setInterval(refresh, POLL_MS);
+
+  // Polls while a page with Now Playing is showing, starting fresh each time one is shown.
+  onEveryPage(() => {
+    if (!document.getElementById('now-playing')) return;
+    lastRendered = '';
+    refresh();
+    const poll = setInterval(refresh, POLL_MS);
+    return () => clearInterval(poll);
+  });
 </script>

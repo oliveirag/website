@@ -2,6 +2,7 @@
 // The Sky: the region above the Field where page content sits and scrolls. It stops short of the grass
 // and fades its content out over its last stretch, so nothing ever touches the Field.
 // It shows a "scroll" hint while there is more below and the visitor has not scrolled yet.
+// Each page brings its own Sky, so moving to another page starts at the top.
 ---
 
 <main id="sky" class="sky no-scrollbar">
@@ -20,13 +21,14 @@
     --sky-gap: 12px;
     /* The stretch at the bottom of the Sky over which content fades out. */
     --sky-fade: 96px;
-    /* Room at the top for the controls that sit over the Sky. */
-    --sky-top-inset: 48px;
+    /* Space between the navigation band and the first content, over which content fades out at the top. */
+    --sky-top-inset: 16px;
   }
 
   .sky {
     position: fixed;
-    top: 0;
+    /* The Sky starts below the navigation band, so content never scrolls under the links. */
+    top: var(--nav-band);
     left: 0;
     right: 0;
     bottom: calc(var(--field-height) + var(--sky-gap));
@@ -40,11 +42,18 @@
     padding-top: var(--sky-top-inset);
     /* Lets the last content scroll clear of the fade. */
     padding-bottom: var(--sky-fade);
-    /* Anchors and find land below the top controls and above the fade. */
+    /* Anchors and find land below the top fade and above the bottom one. */
     scroll-padding-top: var(--sky-top-inset);
     scroll-padding-bottom: var(--sky-fade);
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--sky-fade)), transparent calc(100% - 16px));
-    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--sky-fade)), transparent calc(100% - 16px));
+    --sky-mask: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--sky-top-inset),
+      #000 calc(100% - var(--sky-fade)),
+      transparent calc(100% - 16px)
+    );
+    -webkit-mask-image: var(--sky-mask);
+    mask-image: var(--sky-mask);
   }
 
   .scroll-hint {
@@ -84,5 +93,5 @@
 <script>
   import { followSky } from '../scripts/sky';
 
-  followSky(document.getElementById('sky')!, document.getElementById('scroll-hint')!);
+  followSky();
 </script>
