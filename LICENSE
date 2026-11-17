@@ -26,3 +26,7 @@ The files in src/designely/ are excluded from this licence. They are exports fro
 Designely Studio, Copyright (c) 2026 DESIGNELY LTD, licensed only to play the
 export (see app.designely.studio/licence and src/designely/README.md). They keep
 their notices, and designely-runtime.js is never edited.
+
+public/fonts/instrument-serif-latin.woff2 is Instrument Serif, Copyright 2017 The
+Instrument Serif Project Authors, under the SIL Open Font License 1.1 (see
+src/designely/FONT_LICENSE.txt).
