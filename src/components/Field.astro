@@ -1,0 +1,39 @@
+---
+// The Field: grass pinned to the bottom of the screen. Its box is the grass band, which nothing else may touch.
+// The scene inside draws the whole viewport, sky included, and sits behind everything.
+// Under it, a CSS gradient in the theme's sky colours shows until the scene draws (or if it can't).
+import FieldScene from './FieldScene';
+import { skyCustomProperties } from '../scripts/scene-palette';
+---
+
+<Fragment set:html={`<style>${skyCustomProperties}</style>`} />
+<div class="field-sky" aria-hidden="true"></div>
+<div id="field" aria-hidden="true">
+  <FieldScene client:only="react" />
+</div>
+
+<style is:global>
+  :root {
+    /* The share of the viewport the grass fills. Phones get their own value later. */
+    --field-share: 0.3;
+    --field-height: calc(var(--field-share) * 100vh);
+  }
+
+  .field-sky {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(to bottom, var(--sky-top), var(--sky-horizon) calc(100% - var(--field-height)));
+    pointer-events: none;
+  }
+
+  #field {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--field-height);
+    z-index: 0;
+    pointer-events: none;
+  }
+</style>
