@@ -1,6 +1,6 @@
 import type { Theme } from './preferences';
 
-// Every scene colour for one theme. The Field reads `field`; the Intro (a later ticket) reads `intro`.
+// Every scene colour for one theme. The Field reads `field`; the Intro reads `intro`.
 // Starting values are the prototype's from the spec. Tune them here and nowhere else.
 export interface ScenePalette {
   field: {
@@ -59,5 +59,15 @@ export const skyCustomProperties = (Object.keys(scenePalettes) as Theme[])
     const { skyTop, horizonColour } = scenePalettes[theme].field;
     const selector = theme === 'night' ? ':root' : `:root[data-theme="${theme}"]`;
     return `${selector} { --sky-top: ${skyTop}; --sky-horizon: ${horizonColour}; }`;
+  })
+  .join('\n');
+
+// The Intro's colours as CSS custom properties per theme, so its backdrop and hint are right from first paint,
+// before Bloom Type draws.
+export const introCustomProperties = (Object.keys(scenePalettes) as Theme[])
+  .map((theme) => {
+    const { background, name } = scenePalettes[theme].intro;
+    const selector = theme === 'night' ? ':root' : `:root[data-theme="${theme}"]`;
+    return `${selector} { --intro-background: ${background}; --intro-ink: ${name}; }`;
   })
   .join('\n');

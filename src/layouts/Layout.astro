@@ -8,7 +8,7 @@ import Navigation from '../components/Navigation.astro';
 import Field from '../components/Field.astro';
 import Sky from '../components/Sky.astro';
 import SoundControl from '../components/SoundControl.astro';
-import { themeBeforePaintScript, mutedBeforePaintScript, themeColors } from '../scripts/preferences';
+import { themeBeforePaintScript, mutedBeforePaintScript, introBeforePaintScript, themeColors } from '../scripts/preferences';
 import { oldLinksBeforePaintScript } from '../scripts/old-links';
 interface Props {
   title: string;
@@ -32,6 +32,7 @@ import '../styles/tokens.css';
     <link rel="icon" href="/images/globe.png" type="image/png">
     <script is:inline set:html={themeBeforePaintScript} />
     <script is:inline set:html={mutedBeforePaintScript} />
+    <script is:inline set:html={introBeforePaintScript} />
     <!-- Google tag (gtag.js). In the head and the same on every page, so it runs once per visit. -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-6LCTQSHDRD"></script>
     <script is:inline>
@@ -44,6 +45,8 @@ import '../styles/tokens.css';
     <ClientRouter />
   </head>
   <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
+    <!-- Home's Intro goes here, outside the Sky, whose fade mask would clip it. -->
+    <slot name="intro" />
     <Field />
     <Navigation />
     <Sky>
@@ -53,9 +56,11 @@ import '../styles/tokens.css';
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';
+      import { followIntro } from '../scripts/intro';
       import { newAddressFor } from '../scripts/old-links';
 
       followTheme();
+      followIntro();
 
       // An old link typed or followed while Home is already open. The hash change leaves a history entry
       // the client router can't navigate from, so this one loads the page in full.
