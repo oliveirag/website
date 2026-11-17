@@ -2,6 +2,8 @@
 // Colors, radii and motion come from oliveirag/design-system via the CSS variables in src/styles/tokens.css.
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+	// dark: classes follow the Night theme on <html data-theme>, not the OS.
+	darkMode: ['selector', '[data-theme="night"]'],
 	theme: {
 	  extend: {
 		fontFamily: {

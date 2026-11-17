@@ -1,5 +1,7 @@
 ---
 import SpeedInsights from '@vercel/speed-insights/astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import { themeBeforePaintScript, themeColors } from '../scripts/preferences';
 interface Props {
   title: string;
 }
@@ -9,21 +11,30 @@ import '../styles/scrollbar.css';
 import '../styles/tokens.css';
 ---
 
-<html lang="en" class="no-scrollbar">
+<html lang="en" class="no-scrollbar" data-theme="night">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content="peep the website">
     <title>{title}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
+    <script is:inline set:html={themeBeforePaintScript} />
   </head>
   <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
+    <!-- The theme toggle sits top right until the navigation gives it its final place. -->
+    <div class="relative z-20 flex justify-end max-w-5xl mx-auto px-4 sm:px-8 pt-4">
+      <ThemeToggle />
+    </div>
     <main class="flex justify-center relative z-10 no-scrollbar">
         <slot />
     </main>
     <SpeedInsights />
+    <script>
+      import { followTheme } from '../scripts/theme';
+
+      followTheme();
+    </script>
   </body>
 </html>
