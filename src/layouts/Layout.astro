@@ -56,11 +56,9 @@ import '../styles/tokens.css';
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';
-      import { followIntro } from '../scripts/intro';
       import { newAddressFor } from '../scripts/old-links';
 
       followTheme();
-      followIntro();
 
       // An old link typed or followed while Home is already open. The hash change leaves a history entry
       // the client router can't navigate from, so this one loads the page in full.

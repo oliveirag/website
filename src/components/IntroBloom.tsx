@@ -11,13 +11,15 @@ function IntroBloom() {
   const [theme, setTheme] = useState(() => read('theme'));
   useEffect(() => subscribe('theme', setTheme), []);
   const palette = scenePalettes[theme].intro;
+  // Black screens away to nothing and white multiplies away to nothing, leaving the Field's sky behind it.
+  const background = palette.blend === 'screen' ? '#000000' : '#ffffff';
 
   // data-palette says which theme's palette the drawing was last given, for anyone checking from outside.
   return (
-    <div data-palette={theme} style={{ width: '100%', height: '100%' }}>
+    <div data-palette={theme} style={{ width: '100%', height: '100%', mixBlendMode: palette.blend }}>
       <BloomType
         text="guilherme oliveira"
-        backgroundColour={palette.background}
+        backgroundColour={background}
         textColour={palette.name}
         flowerColour={palette.blooms}
         stemColour={palette.stems}

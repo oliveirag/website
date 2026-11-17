@@ -3,12 +3,14 @@
 // keyboard focus on its heading.
 //
 // <html data-intro> drives it: "showing" while it covers the page, "leaving" while it fades out, and absent
-// otherwise. The head script sets "showing" before first paint on a full load (introBeforePaintScript in
-// preferences.ts), and followIntro sets it after a client-side change to Home.
-import { read, write } from './preferences';
+// otherwise. Only the head script sets "showing", before first paint on a full load of Home with no hash and
+// the Intro not seen (introBeforePaintScript in preferences.ts). A client-side page change never brings it:
+// the only link into Home is "projects", which points at a spot on the page.
+import { write } from './preferences';
 import { unlockSound } from './sound';
 
-const HOME = '/';
+export type IntroState = 'showing' | 'leaving';
+
 const FADE_MS = 400;
 const REDUCED_FADE_MS = 150;
 // A tap's follow-up mouse events and click arrive after the finger lifts. The Intro keeps catching them for
@@ -17,24 +19,23 @@ const POINTER_SETTLE_MS = 1000;
 
 const root = () => document.documentElement;
 
-export function introPending(pathname = location.pathname) {
-  return pathname === HOME && !read('introSeen');
+export function introState(): IntroState | null {
+  return root().getAttribute('data-intro') as IntroState | null;
 }
 
-// A client-side page change copies <html>'s attributes from the new page, which never marks the Intro, so
-// a first arrival at Home this way is marked straight after the swap, before the new page paints.
-export function followIntro() {
-  document.addEventListener('astro:after-swap', () => {
-    if (introPending()) root().setAttribute('data-intro', 'showing');
-  });
+function setIntroState(state: IntroState | null) {
+  if (state) root().setAttribute('data-intro', state);
+  else root().removeAttribute('data-intro');
 }
 
-// The real page heading with the name, which takes focus when the Intro ends.
-function homeHeading() {
+// Moves keyboard focus to the real page heading with the name. It isn't a control, so it's made focusable
+// from script only, and marked so it shows no focus ring.
+function focusHomeHeading() {
   const heading = document.querySelector<HTMLElement>('#sky h1');
-  if (heading && !heading.hasAttribute('tabindex')) heading.tabIndex = -1;
-  heading?.setAttribute('data-intro-focus', '');
-  return heading;
+  if (!heading) return;
+  if (!heading.hasAttribute('tabindex')) heading.tabIndex = -1;
+  heading.setAttribute('data-intro-focus', '');
+  heading.focus({ preventScroll: true });
 }
 
 // Bloom Type is loaded only for a visitor who sees the Intro, and only after the first paint.
@@ -78,7 +79,7 @@ export function startIntro(intro: HTMLElement): () => void {
   const finish = () => {
     if (!fadeDone || !pointerDone) return;
     teardown();
-    if (root().getAttribute('data-intro') === 'leaving') root().removeAttribute('data-intro');
+    if (introState() === 'leaving') setIntroState(null);
   };
 
   const settlePointer = () => {
@@ -96,8 +97,8 @@ export function startIntro(intro: HTMLElement): () => void {
     ended = true;
     write('introSeen', true);
     unlockSound();
-    homeHeading()?.focus({ preventScroll: true });
-    root().setAttribute('data-intro', 'leaving');
+    focusHomeHeading();
+    setIntroState('leaving');
     if (byPointer) {
       pointerDone = false;
       intro.addEventListener('click', settlePointer, { once: true });
@@ -116,9 +117,10 @@ export function startIntro(intro: HTMLElement): () => void {
   };
   // Clicking would move focus to the Intro itself after the heading took it.
   const onMouseDown = (event: MouseEvent) => event.preventDefault();
-  // Any key ends the Intro, and does only that. Browser shortcuts (with Ctrl, Alt or Cmd) are left alone.
+  // Any key ends the Intro, and does only that. Browser shortcuts (Cmd, or Ctrl without Alt) are left alone.
+  // Ctrl with Alt is AltGr on Windows, which types characters, so it counts as a key.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (ended || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (ended || event.metaKey || (event.ctrlKey && !event.altKey)) return;
     event.preventDefault();
     event.stopPropagation();
     end(false);
