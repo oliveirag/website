@@ -176,8 +176,7 @@
 /* Reduced motion: keep the content, drop the travel */
 @media (prefers-reduced-motion: reduce) {
   .motion-preset-slide-right-sm,
-  .motion-preset-slide-left-sm,
-  .typewriter {
+  .motion-preset-slide-left-sm {
     animation: none !important;
   }
   .btn-primary:active {

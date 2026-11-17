@@ -40,7 +40,9 @@ export const scenePalettes: Record<Theme, ScenePalette> = {
       flower: exportedFlower,
       flowers: 0.25,
       skyTop: '#050a1c',
-      horizonColour: '#1b2a4a',
+      // Darker than the prototype's #1b2a4a, so tertiary text and the coloured words in About still reach
+      // 4.5:1 just above the horizon (tests/sky-contrast.spec.ts).
+      horizonColour: '#111a2e',
     },
     intro: { blend: 'screen', name: '#f4f1e8', blooms: '#f2c879', stems: '#5f8f68', leaves: '#5f8f68' },
   },
