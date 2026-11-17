@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ChatBot from '../components/ChatBot.jsx';
+---
+
+<Layout title="chatbot | gui's website">
+  <!-- Fills the Sky's clear height, so the whole Chatbot sits above the fade and never reaches the grass. -->
+  <div class="chatbot-page w-full max-w-5xl px-4 sm:px-8">
+    <h1 class="sr-only">chatbot</h1>
+    <div id="chatbot" class="glow-border relative mx-auto rounded-lg max-w-4xl h-full overflow-hidden">
+      <ChatBot client:load />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .chatbot-page {
+    height: 100%;
+    min-height: 20rem;
+  }
+</style>
+
+<script>
+  import { initializeHover } from '../scripts/hover.js';
+
+  initializeHover('#chatbot');
+</script>

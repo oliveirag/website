@@ -1,0 +1,148 @@
+---
+// The navigation at the top right of every page: the five links in a fixed order, then the theme toggle.
+// The link for the page being shown is marked. Below the tablet breakpoint the links fold into a menu,
+// and the theme toggle stays out at the far right.
+import ThemeToggle from './ThemeToggle.astro';
+
+// `page` is the route a link belongs to. "projects" is a section of Home, so it is marked on Home.
+const links = [
+  { label: 'projects', href: '/#projects', page: '/' },
+  { label: 'thoughts', href: '/thoughts', page: '/thoughts' },
+  { label: 'videos', href: '/videos', page: '/videos' },
+  { label: 'chatbot', href: '/chatbot', page: '/chatbot' },
+  { label: 'top 5', href: '/top-5', page: '/top-5' },
+];
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (page: string) => (page === '/' ? path === '/' : path === page || path.startsWith(`${page}/`));
+---
+
+<header class="site-header">
+  <div class="site-header-row">
+    <nav aria-label="Main" class="site-nav" data-open="false">
+      <button type="button" class="nav-control nav-menu-button" aria-expanded="false" aria-controls="site-nav-links">menu</button>
+      <ul id="site-nav-links" class="nav-links">
+        {links.map((link) => (
+          <li>
+            <a href={link.href} class="nav-control nav-link" aria-current={isCurrent(link.page) ? 'page' : undefined}>{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+
+<style is:global>
+  :root {
+    /* The band at the top of the screen that holds the navigation. The Sky starts below it. */
+    --nav-band: 68px;
+  }
+
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    pointer-events: none;
+  }
+
+  .site-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 64rem;
+    height: var(--nav-band);
+    margin: 0 auto;
+    padding: 12px 16px 0;
+  }
+  @media (min-width: 640px) {
+    .site-header-row {
+      padding-inline: 32px;
+    }
+  }
+  .site-header-row > * {
+    pointer-events: auto;
+  }
+
+  .site-nav {
+    position: relative;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-control {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-control:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+  }
+
+  /* The current page reads in the primary colour and is underlined, so it never relies on colour alone. */
+  .nav-link[aria-current='page'] {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 1px;
+  }
+
+  .nav-menu-button {
+    display: none;
+  }
+  .nav-menu-button[aria-expanded='true'] {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  /* Below the tablet breakpoint the links fold into a menu that drops down from the menu button.
+     It never reaches lower than the Sky does, so it stays clear of the grass, and scrolls if it has to. */
+  @media (max-width: 767.98px) {
+    .nav-menu-button {
+      display: flex;
+    }
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      min-width: 12rem;
+      max-height: calc(100vh - var(--nav-band) - var(--field-height) - var(--sky-gap));
+      overflow-y: auto;
+      flex-direction: column;
+      padding: 6px;
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      background: var(--surface-raised);
+    }
+    .site-nav[data-open='true'] .nav-links {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  import { followMenu } from '../scripts/navigation';
+
+  followMenu();
+</script>
