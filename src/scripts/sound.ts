@@ -2,19 +2,21 @@
 //
 // It reports its state on <html data-sound>: "locked" until the visitor's first gesture, then "playing",
 // or "muted" whenever the muted preference is on (before or after a gesture). The state describes what the
-// engine is doing, not what can be heard: with no sound files yet, "playing" is silent.
+// engine is doing, not what can be heard: with no Ambience file yet, "playing" is quiet between Cues.
 //
 // Nothing loads before the first gesture. On it, the engine starts an AudioContext, begins the Ambience
-// and fetches the Cues. The audio lives outside the DOM and this module runs once per visit, so the
+// and fetches the Cue files. A Cue with no file is generated in code instead (generated-cues.ts). The audio lives outside the DOM and this module runs once per visit, so the
 // Ambience carries on across client-side page changes without restarting.
 import { read, subscribe } from './preferences';
+import { generatedCues, type CueName } from './generated-cues';
 import type { SoundFiles, SoundName } from './sound-files';
 
 export type SoundState = 'locked' | 'playing' | 'muted';
-export type CueName = 'link' | 'theme' | 'chatbot';
+export type { CueName };
 
 // Quiet by default, so it never startles. Gains run from 0 to 1.
 const AMBIENCE_VOLUME = 0.2;
+// For Cue files. Generated Cues carry their own levels.
 const CUE_VOLUME = 0.4;
 const FADE_IN_SECONDS = 1.5;
 const FADE_OUT_SECONDS = 0.2;
@@ -41,11 +43,9 @@ function report() {
   document.documentElement.setAttribute('data-sound', soundState());
 }
 
-const hasFiles = () => Object.keys(files).length > 0;
-
-// The AudioContext, created on the first gesture and only if there is something to play.
+// The AudioContext, created on the first gesture.
 function audio(): AudioContext | undefined {
-  if (!context && hasFiles()) {
+  if (!context) {
     try {
       context = new AudioContext();
     } catch {
@@ -126,18 +126,22 @@ export function unlockSound() {
     unlocked = true;
     report();
   }
-  if (!hasFiles()) return;
   audio();
   for (const name of ['cue-link', 'cue-theme', 'cue-chatbot'] as const) if (files[name]) loadCue(name);
   updateAmbience();
 }
 
-// Plays a short Cue for one action. Silent while locked, muted, hidden, or without the Cue's file.
+// Plays a short Cue for one action: its file if there is one, otherwise the generated one.
+// Silent while locked, muted or hidden.
 export function playCue(cue: CueName) {
   const name: SoundName = `cue-${cue}`;
-  if (!started || !unlocked || muted || !files[name] || document.visibilityState !== 'visible') return;
+  if (!started || !unlocked || muted || document.visibilityState !== 'visible') return;
   const ctx = audio();
   if (!ctx) return;
+  if (!files[name]) {
+    generatedCues[cue](ctx, ctx.destination, read('theme'));
+    return;
+  }
   const requested = performance.now();
   loadCue(name).then((buffer) => {
     if (!buffer || muted || performance.now() - requested > CUE_LATENESS_MS) return;
