@@ -1,4 +1,5 @@
-// Moves the radial glow on .glow-border and .glow-divider elements to follow the pointer.
+// Sets --mouse-x/--mouse-y on every element matching `selector` to the pointer position relative
+// to that element, which the .glow-border and .glow-divider styles use to place their glow.
 export function initializeHover(selector) {
     const update = (e) => {
         document.querySelectorAll(selector).forEach((el) => {

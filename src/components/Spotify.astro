@@ -64,8 +64,14 @@ import SpotifyIcon from '../icons/SpotifyIcon.astro';
     status.classList.remove('hidden');
   }
 
+  // Redraw only when something changed, so the live region doesn't re-announce the same track every poll.
+  let lastRendered = '';
   async function refresh() {
-    render(await fetchState());
+    const state = await fetchState();
+    const key = JSON.stringify(state);
+    if (key === lastRendered) return;
+    lastRendered = key;
+    render(state);
   }
 
   initializeHover('.spotify-hover');
