@@ -1,0 +1,107 @@
+---
+// The Intro: full screen over Home on the first visit in a browser session. It shows only while <html> has
+// data-intro (set before first paint by the head script), so a returning visitor never sees it and a page
+// without JavaScript never shows it. Bloom Type draws into the stage after first paint (src/scripts/intro.ts).
+import { introCustomProperties } from '../scripts/scene-palette';
+---
+
+<Fragment set:html={`<style>${introCustomProperties}</style>`} />
+<div id="intro" class="intro" role="dialog" aria-modal="true" aria-label="intro" aria-describedby="intro-hint" tabindex="-1">
+  <div class="intro-stage" data-intro-stage></div>
+  <p id="intro-hint" class="intro-hint">click, tap or press any key to continue</p>
+  <button type="button" class="intro-skip" data-intro-skip>skip intro</button>
+</div>
+
+<style is:global>
+  .intro {
+    display: none;
+  }
+
+  :root[data-intro] .intro {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--intro-background);
+    color: var(--intro-ink);
+    opacity: 1;
+    cursor: pointer;
+    transition: opacity var(--intro-fade, 400ms) var(--ease-out);
+  }
+
+  /* The fade lets Home take input straight away, apart from a pointer press that is still finishing. */
+  :root[data-intro='leaving'] .intro {
+    opacity: 0;
+  }
+
+  .intro:focus {
+    outline: none;
+  }
+
+  .intro-stage {
+    position: absolute;
+    inset: 0;
+  }
+
+  .intro-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    margin: 0;
+    max-width: calc(100% - 32px);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-align: center;
+    opacity: 0.75;
+    /* The flowers keep leaning toward a pointer that passes over the hint. */
+    pointer-events: none;
+  }
+
+  .intro-skip {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: inherit;
+    background: transparent;
+    opacity: 0.75;
+    cursor: pointer;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .intro-skip:hover,
+  .intro-skip:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 640px) {
+    .intro-skip {
+      right: 32px;
+      top: 24px;
+    }
+  }
+
+  /* Home's heading takes focus when the Intro ends. It isn't a control, so it shows no focus ring. */
+  [data-intro-focus]:focus {
+    outline: none;
+  }
+</style>
+
+<script>
+  import { startIntro } from '../scripts/intro';
+  import { onEveryPage } from '../scripts/page-lifecycle';
+
+  onEveryPage(() => {
+    const intro = document.getElementById('intro');
+    if (!intro || document.documentElement.getAttribute('data-intro') !== 'showing') return;
+    return startIntro(intro);
+  });
+</script>
