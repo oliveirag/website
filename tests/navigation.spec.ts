@@ -221,6 +221,30 @@ test.describe('old links', () => {
     await expect(page.getByRole('textbox', { name: 'Message' })).toBeVisible();
   });
 
+  test('an old link followed from another page moves on too', async ({ page }) => {
+    await page.goto('/thoughts');
+    await page.getByRole('main').evaluate((sky) => {
+      const link = document.createElement('a');
+      link.href = '/#chatbot';
+      link.textContent = 'old #chatbot';
+      sky.append(link);
+    });
+    await page.getByRole('link', { name: 'old #chatbot' }).click();
+    await expect(page).toHaveURL(/\/chatbot$/);
+    await expect(page.getByRole('textbox', { name: 'Message' })).toBeVisible();
+
+    await page.goto('/thoughts');
+    await page.getByRole('main').evaluate((sky) => {
+      const link = document.createElement('a');
+      link.href = '/#video-games';
+      link.textContent = 'old #video-games';
+      sky.append(link);
+    });
+    await page.getByRole('link', { name: 'old #video-games' }).click();
+    await expect(page).toHaveURL(/\/top-5#video-games$/);
+    await expect(page.getByText('video games', { exact: true })).toBeInViewport();
+  });
+
   test('a hash that is not an old link leaves Home as it is, without errors', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));

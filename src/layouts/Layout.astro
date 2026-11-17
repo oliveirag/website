@@ -59,6 +59,12 @@ import '../styles/tokens.css';
         const to = newAddressFor(location.pathname, location.hash);
         if (to) location.replace(to);
       });
+
+      // An old link followed from another page, which the client router loads without a hash change.
+      document.addEventListener('astro:before-preparation', (event) => {
+        const to = newAddressFor(event.to.pathname, event.to.hash);
+        if (to) event.to = new URL(to, event.to);
+      });
     </script>
   </body>
 </html>

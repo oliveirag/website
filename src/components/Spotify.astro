@@ -28,7 +28,6 @@ import SpotifyIcon from '../icons/SpotifyIcon.astro';
   type Track = { title: string; artist: string };
   type State = { name: 'playing'; track: Track } | { name: 'offline' } | { name: 'error' };
 
-
   // The proxy answers 200 with a track, 204 with no body when offline, and 500 when it fails.
   async function fetchState(): Promise<State> {
     try {
