@@ -77,7 +77,6 @@ const mainProjects = [
             <span class="font-bold">about this site</span>
             <span>built with
               <span class="text-red-600 dark:text-red-400">astro</span>,
-              <span class="text-blue-700 dark:text-blue-500">jquery</span>,
               <span class="text-sky-600 dark:text-blue-100">react</span>, and
               <span class="text-cyan-600 dark:text-blue-300">tailwind</span>.
             </span>
@@ -121,9 +120,9 @@ const mainProjects = [
             <Project {...project} />
           ))}
         </div>
-        <div id="git-commits" class="mt-8 px-8 flex flex-col gap-4">
+        <section id="git-commits" aria-label="Commits" aria-live="polite" class="mt-8 px-8 flex flex-col gap-4">
           <div class="font-bold text-secondary text-sm mt-2 mx-auto">Loading commit data...</div>
-        </div>
+        </section>
       </div>
       <div id="chatbot" class="hidden glow-border relative mx-auto rounded-lg max-w-4xl h-[75vh] overflow-hidden">
         <ChatBot client:load />
@@ -148,103 +147,115 @@ const mainProjects = [
 </script>
 
 <script>
-    import { initializeHover } from '../scripts/hover.js';
-    initializeHover('.divider');
-    initializeHover('#chatbot');
-    initializeHover('#switcher');
+  import { initializeHover } from '../scripts/hover.js';
 
-   
-    import $ from 'jquery';
+  initializeHover('.divider');
+  initializeHover('#chatbot');
+  initializeHover('#switcher');
 
-    function switchTab(position: string, tabId: string) {
-        $('#slider').css('left', position);
-        $('#projects, #chatbot, #bookshelf').addClass('hidden');
-        $(tabId).removeClass('hidden');
-        
-        // Update selected tab
-        const activeBtn = tabId + '-btn';
-        $('.tab-btn').removeClass('text-primary').addClass('text-secondary').attr('aria-selected', 'false');
-        $(activeBtn).removeClass('text-secondary').addClass('text-primary').attr('aria-selected', 'true');
-      }
+  // Tab switcher
+  const panelIds = ['projects', 'chatbot', 'bookshelf'] as const;
+  type PanelId = (typeof panelIds)[number];
+  const sliderPosition: Record<PanelId, string> = { projects: '0', chatbot: '33.33%', bookshelf: '66.66%' };
 
-    function handleHash() {
-        const hash = window.location.hash;
-
-        if (hash === '#bookshelf' || hash === '#other') {
-            switchTab('66.66%', '#bookshelf');
-        } else if (hash === '#chatbot') {
-            switchTab('33.33%', '#chatbot');
-        } else if (hash && hash.length > 1 && $(hash).length > 0 && $(hash).closest('#bookshelf').length > 0) {
-            switchTab('66.66%', '#bookshelf');
-            setTimeout(() => {
-                const element = document.getElementById(hash.substring(1));
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 100);
-        } else {
-            switchTab('0', '#projects');
-        }
+  function switchTab(active: PanelId) {
+    document.getElementById('slider')!.style.left = sliderPosition[active];
+    for (const id of panelIds) {
+      const selected = id === active;
+      document.getElementById(id)!.classList.toggle('hidden', !selected);
+      const button = document.getElementById(`${id}-btn`)!;
+      button.classList.toggle('text-primary', selected);
+      button.classList.toggle('text-secondary', !selected);
+      button.setAttribute('aria-selected', String(selected));
     }
+  }
 
-    
-    $(function() {
-      $('#projects-btn').on('click', function() {
-        switchTab('0', '#projects');
-      });
+  function elementForHash(hash: string) {
+    try {
+      return hash.length > 1 ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+    } catch {
+      return null;
+    }
+  }
 
-      $('#chatbot-btn').on('click', function() {
-        switchTab('33.33%', '#chatbot');
-      });
+  function handleHash() {
+    const hash = window.location.hash;
+    const target = elementForHash(hash);
 
-      $('#bookshelf-btn').on('click', function() {
-        switchTab('66.66%', '#bookshelf');
-      });
+    if (hash === '#bookshelf' || hash === '#other') {
+      switchTab('bookshelf');
+    } else if (hash === '#chatbot') {
+      switchTab('chatbot');
+    } else if (target?.closest('#bookshelf')) {
+      switchTab('bookshelf');
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    } else {
+      switchTab('projects');
+    }
+  }
 
-      handleHash();
-      $(window).on('hashchange', handleHash);
-      
+  for (const id of panelIds) {
+    document.getElementById(`${id}-btn`)!.addEventListener('click', () => switchTab(id));
+  }
+  handleHash();
+  window.addEventListener('hashchange', handleHash);
 
-      // Fetch GitHub Contributions
-      $.getJSON('https://my-website-spotify-api.vercel.app/api/github-contributions', function(data) {
-        const $commitsGrid = $('#git-commits');
-        $commitsGrid.empty();
+  // Commits
+  const COMMITS_URL = 'https://my-website-spotify-api.vercel.app/api/github-contributions';
+  const rankColors = ['text-amber-600 dark:text-amber-400', 'text-zinc-500 dark:text-zinc-200', 'text-amber-700 dark:text-amber-600'];
+  const rankBackgrounds = ['bg-amber-400/5', 'bg-zinc-200/5', 'bg-amber-600/5'];
 
-        if (data && data.totalCommits > 0) {
-          $commitsGrid.append(
-            `<span class="font-bold text-secondary text-sm mt-2 mx-auto">${data.totalCommits} commits in ${data.year}</span>`
-          );
+  type Repository = { name: string; language: string | null; commits: number };
+  type CommitsSummary = { year: number; totalCommits: number; repositories?: Repository[] };
 
-          // Add repository details
-          if (data.repositories && data.repositories.length > 0) {
-            const $repoList = $('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>');
-            
-            data.repositories.forEach((repo, index) => {
-              const rankColors = ['text-amber-600 dark:text-amber-400', 'text-zinc-500 dark:text-zinc-200', 'text-amber-700 dark:text-amber-600'];
-              const bgColors = ['bg-amber-400/5', 'bg-zinc-200/5', 'bg-amber-600/5'];
-              const bgClass = index < 3 ? `${bgColors[index]} border rounded-md p-2` : '';
-              const rank = index < 3 ? `<span class="${rankColors[index]}">#${index + 1}</span> ` : '';
-              const $repoCard = $(`
-                <div class="flex flex-col items-center text-center ${bgClass}">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-bold">${rank}${repo.name}</span>
-                  </div>
-                  <span class="inline-block text-xs text-secondary">${repo.language} • ${repo.commits} commits</span>
-                </div>
-              `);
-              $repoList.append($repoCard);
-            });
-            
-            $commitsGrid.append($repoList);
-          }
-        } else {
-          $commitsGrid.html('<div class="text-center text-secondary">No contribution data found.</div>');
-        }
-      }).fail(function() {
-        $('#git-commits').html('<div class="text-center text-error">Couldn\'t load git commits. Refresh to try again.</div>');
-      });
-    });
-  </script>
+  function textElement(tag: string, className: string, text?: string) {
+    const node = document.createElement(tag);
+    node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function repositoryCard(repo: Repository, index: number) {
+    const podium = index < 3;
+    const card = textElement('div', `flex flex-col items-center text-center${podium ? ` ${rankBackgrounds[index]} border rounded-md p-2` : ''}`);
+    const heading = textElement('div', 'flex items-center gap-2 mb-1');
+    const name = textElement('span', 'font-bold');
+    if (podium) name.append(textElement('span', rankColors[index], `#${index + 1}`), ' ');
+    name.append(String(repo.name));
+    heading.append(name);
+    card.append(heading, textElement('span', 'inline-block text-xs text-secondary', `${repo.language} • ${repo.commits} commits`));
+    return card;
+  }
+
+  function renderCommits(container: HTMLElement, data: CommitsSummary) {
+    if (!(data?.totalCommits > 0)) {
+      container.replaceChildren(textElement('div', 'text-center text-secondary', 'No contribution data found.'));
+      return;
+    }
+    const children: HTMLElement[] = [
+      textElement('span', 'font-bold text-secondary text-sm mt-2 mx-auto', `${data.totalCommits} commits in ${data.year}`),
+    ];
+    if (data.repositories?.length) {
+      const list = textElement('div', 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4');
+      list.append(...data.repositories.map(repositoryCard));
+      children.push(list);
+    }
+    container.replaceChildren(...children);
+  }
+
+  async function loadCommits() {
+    const container = document.getElementById('git-commits')!;
+    try {
+      const res = await fetch(COMMITS_URL);
+      if (!res.ok) throw new Error(`Commits request failed with ${res.status}`);
+      renderCommits(container, await res.json());
+    } catch {
+      container.replaceChildren(textElement('div', 'text-center text-error', "Couldn't load git commits. Refresh to try again."));
+    }
+  }
+
+  loadCommits();
+</script>
 
   <style>
     @media (min-width: 768px) {

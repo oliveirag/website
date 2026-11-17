@@ -23,18 +23,7 @@ import '../styles/tokens.css';
   <body class="bg-page text-primary no-scrollbar overflow-x-hidden font-sans">
     <main class="flex justify-center relative z-10 no-scrollbar">
         <slot />
-        <!-- <div class="absolute top-0 right-1/2 translate-x-1/2 md:translate-x-0 md:right-2 text-xs">
-            <div id="page-load"></div>
-          </div> -->
     </main>
-    <script>
-      // import $ from 'jquery';
-     
-      // $(function() {
-      //   const pageLoadTime = performance.now();
-      //   $('#page-load').text(`${Math.round(pageLoadTime)}ms`);
-      // });
-    </script>
     <SpeedInsights />
   </body>
 </html>
