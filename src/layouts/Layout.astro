@@ -17,6 +17,7 @@ interface Props {
 const { title } = Astro.props;
 import '../styles/scrollbar.css';
 import '../styles/tokens.css';
+import '../styles/type.css';
 ---
 
 <!-- Pages swap with no animation: the Field carries on as it is, and input is never held up by a fade. -->
@@ -28,6 +29,8 @@ import '../styles/tokens.css';
     <meta name="description" content="peep the website">
     <title>{title}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- The serif for my name and page titles: preloaded so the Home heading shows in it from the start. -->
+    <link rel="preload" href="/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
     <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
     <script is:inline set:html={themeBeforePaintScript} />

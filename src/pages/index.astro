@@ -44,15 +44,16 @@ const mainProjects = [
 	<Intro slot="intro" />
 	<div class="max-w-5xl w-full p-4 sm:p-8">
 		<div class="flex flex-col justify-center">
-			<div class="flex justify-between mb-8">
-				<h1 class="typewriter text-3xl md:text-4xl lg:text-5xl mr-2 md:mr-0">guilherme oliveira</h1>
+			<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+				<!-- My name as real text, so it never lives only in the Intro's drawing. The Intro moves focus here when it ends. -->
+				<h1 class="home-name">guilherme oliveira</h1>
 				<Spotify />
 			</div>
       <div class="grid grid-cols-1 md:grid-cols-5 gap-6 text-base sm:text-lg lg:px-2">
         <div class="md:col-span-3 space-y-2 md:space-y-4">
           <div id="about" class="motion-preset-slide-right-sm flex flex-col">
             <span class="font-bold">about me</span>
-            <span>computer science @ <span class="text-yellow-600 dark:text-yellow-400">ucf</span>.</span>
+            <span>computer science @ <span class="text-yellow-800 dark:text-yellow-400">ucf</span>.</span>
             <span class="rainbow-letters">currently building something cool</span>
             <!-- <a href="buymeacoffee.com/ronthekiehn" target="_blank" rel="noreferrer" class="hover:underline  text-yellow-200">buy me a coffee</a> -->
           </div>
@@ -61,26 +62,25 @@ const mainProjects = [
             <span class="font-bold">contact me</span>
             <span class="pointer-events-none"><span class="pointer-events-auto select-text">goliveiracoll@gmail.com</span></span>
             <span>or on
-              <a href="https://github.com/oliveirag" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-gray-600 dark:text-gray-400">github</a>,
-              <a href="https://www.linkedin.com/in/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-blue-600 dark:text-blue-500">linkedin</a>,
-              <a href="https://x.com/guiwastaken" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-sky-600 dark:text-blue-300">twitter</a>,
-              <a href="https://www.instagram.com/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-orange-600 dark:text-orange-500">instagram</a>.
+              <a href="https://github.com/oliveirag" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-gray-700 dark:text-gray-400">github</a>,
+              <a href="https://www.linkedin.com/in/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-blue-700 dark:text-blue-500">linkedin</a>,
+              <a href="https://x.com/guiwastaken" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-sky-800 dark:text-blue-300">twitter</a>,
+              <a href="https://www.instagram.com/notgui/" target="_blank" rel="noreferrer" class="underline underline-offset-[3px] hover:decoration-2 text-orange-800 dark:text-orange-500">instagram</a>.
             </span>
           </div>
           <div class="my-2 divider glow-divider w-full max-w-[552px] motion-preset-slide-right-sm motion-delay-75"></div>
           <div id="tech-stack" class="flex flex-col motion-preset-slide-right-sm motion-delay-150">
             <span class="font-bold">tech stack</span>
-            <span><span class="text-blue-600 dark:text-blue-400">python</span>, <span class="text-yellow-600 dark:text-yellow-300">javascript</span>/<span class="text-blue-500 dark:text-blue-300">typescript</span>, <span class="text-orange-600 dark:text-orange-400">swift</span>, <span class="text-red-600 dark:text-red-500">java</span>, and <span class="text-orange-500 dark:text-orange-300">c/c++</span></span>
+            <span><span class="text-blue-800 dark:text-blue-400">python</span>, <span class="text-yellow-800 dark:text-yellow-300">javascript</span>/<span class="text-blue-700 dark:text-blue-300">typescript</span>, <span class="text-orange-800 dark:text-orange-400">swift</span>, <span class="text-red-800 dark:text-red-500">java</span>, and <span class="text-orange-800 dark:text-orange-300">c/c++</span></span>
           </div>
           <div class="my-2 divider glow-divider w-full max-w-[552px] motion-preset-slide-right-sm motion-delay-100"></div>
           <div id="about-site" class="flex flex-col motion-preset-slide-right-sm motion-delay-150">
             <span class="font-bold">about this site</span>
             <span>built with
-              <span class="text-red-600 dark:text-red-400">astro</span>,
-              <span class="text-sky-600 dark:text-blue-100">react</span>, and
-              <span class="text-cyan-600 dark:text-blue-300">tailwind</span>.
+              <span class="text-red-800 dark:text-red-400">astro</span>,
+              <span class="text-sky-800 dark:text-blue-100">react</span>, and
+              <span class="text-cyan-800 dark:text-blue-300">tailwind</span>.
             </span>
-            <a href="https://github.com/oliveirag/Website" target="_blank" rel="noreferrer" class="link w-fit">view the source code here</a>
           </div>
         </div>
         <div class="md:col-span-2 flex flex-col justify-center items-center md:items-center md:pt-12">
@@ -127,7 +127,7 @@ const mainProjects = [
 
   // Commits
   const COMMITS_URL = 'https://my-website-spotify-api.vercel.app/api/github-contributions';
-  const rankColors = ['text-amber-600 dark:text-amber-400', 'text-zinc-500 dark:text-zinc-200', 'text-amber-700 dark:text-amber-600'];
+  const rankColors = ['text-amber-800 dark:text-amber-400', 'text-zinc-700 dark:text-zinc-200', 'text-amber-900 dark:text-amber-600'];
   const rankBackgrounds = ['bg-amber-400/5', 'bg-zinc-200/5', 'bg-amber-600/5'];
 
   type Repository = { name: string; language: string | null; commits: number };
@@ -174,7 +174,8 @@ const mainProjects = [
       if (!res.ok) throw new Error(`Commits request failed with ${res.status}`);
       renderCommits(container, await res.json());
     } catch {
-      container.replaceChildren(textElement('div', 'text-center text-error', "Couldn't load git commits. Refresh to try again."));
+      // On a surface, not the sky: Day's error red can't reach 4.5:1 on a blue sky.
+      container.replaceChildren(textElement('div', 'mx-auto w-fit rounded-lg border bg-surface px-4 py-2 text-center text-error', "Couldn't load git commits. Refresh to try again."));
     }
   }
 
@@ -185,47 +186,16 @@ const mainProjects = [
   });
 </script>
 
-  <style>
-    @media (min-width: 768px) {
-      .typewriter {
-    --motion-duration: 2000ms;
-    animation: 
-      typing var(--motion-duration) steps(18) forwards,
-      cursor-blink 0.4s step-end infinite;
-    white-space: nowrap;
-    border-right: 2px solid;
-    overflow: hidden;
-    width: 18ch;
-    border-right-color: transparent;
-  }
-    }
-
-@keyframes typing {
-  0%, 10% { 
-    width: 0;
-  }
-  90%, 100% { 
-    width: 18ch;
-  }
-}
-
-@keyframes cursor-blink {
-  0%, 100% { border-right-color: currentColor }
-  50% { border-right-color: transparent }
-}
-
-.typewriter {
-  animation-iteration-count: 1, 5;  /* Type once, blink 5 times */
-}
-  </style>
 
 <style is:global>
+/* Night: the original colours, with violet one step lighter so it still reads just above the horizon.
+   Day: deeper versions of the same hues, so they read on the light sky. */
 .rainbow-letters {
   background: linear-gradient(
     90deg,
     #fbbf24,
     #ec4899,
-    #8b5cf6,
+    #a78bfa,
     #06b6d4,
     #10b981,
     #fbbf24
@@ -235,6 +205,17 @@ const mainProjects = [
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradient-flow 2s linear infinite;
+}
+[data-theme="day"] .rainbow-letters {
+  background-image: linear-gradient(
+    90deg,
+    #92400e,
+    #9d174d,
+    #6d28d9,
+    #155e75,
+    #065f46,
+    #92400e
+  );
 }
 
 @keyframes gradient-flow {
