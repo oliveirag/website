@@ -206,9 +206,9 @@ const mainProjects = [
   const rankBackgrounds = ['bg-amber-400/5', 'bg-zinc-200/5', 'bg-amber-600/5'];
 
   type Repository = { name: string; language: string | null; commits: number };
-  type Contributions = { year: number; totalCommits: number; repositories?: Repository[] };
+  type CommitsSummary = { year: number; totalCommits: number; repositories?: Repository[] };
 
-  function el(tag: string, className: string, text?: string) {
+  function textElement(tag: string, className: string, text?: string) {
     const node = document.createElement(tag);
     node.className = className;
     if (text !== undefined) node.textContent = text;
@@ -217,26 +217,26 @@ const mainProjects = [
 
   function repositoryCard(repo: Repository, index: number) {
     const podium = index < 3;
-    const card = el('div', `flex flex-col items-center text-center${podium ? ` ${rankBackgrounds[index]} border rounded-md p-2` : ''}`);
-    const heading = el('div', 'flex items-center gap-2 mb-1');
-    const name = el('span', 'font-bold');
-    if (podium) name.append(el('span', rankColors[index], `#${index + 1}`), ' ');
+    const card = textElement('div', `flex flex-col items-center text-center${podium ? ` ${rankBackgrounds[index]} border rounded-md p-2` : ''}`);
+    const heading = textElement('div', 'flex items-center gap-2 mb-1');
+    const name = textElement('span', 'font-bold');
+    if (podium) name.append(textElement('span', rankColors[index], `#${index + 1}`), ' ');
     name.append(String(repo.name));
     heading.append(name);
-    card.append(heading, el('span', 'inline-block text-xs text-secondary', `${repo.language} • ${repo.commits} commits`));
+    card.append(heading, textElement('span', 'inline-block text-xs text-secondary', `${repo.language} • ${repo.commits} commits`));
     return card;
   }
 
-  function renderCommits(container: HTMLElement, data: Contributions) {
+  function renderCommits(container: HTMLElement, data: CommitsSummary) {
     if (!(data?.totalCommits > 0)) {
-      container.replaceChildren(el('div', 'text-center text-secondary', 'No contribution data found.'));
+      container.replaceChildren(textElement('div', 'text-center text-secondary', 'No contribution data found.'));
       return;
     }
     const children: HTMLElement[] = [
-      el('span', 'font-bold text-secondary text-sm mt-2 mx-auto', `${data.totalCommits} commits in ${data.year}`),
+      textElement('span', 'font-bold text-secondary text-sm mt-2 mx-auto', `${data.totalCommits} commits in ${data.year}`),
     ];
     if (data.repositories?.length) {
-      const list = el('div', 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4');
+      const list = textElement('div', 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4');
       list.append(...data.repositories.map(repositoryCard));
       children.push(list);
     }
@@ -250,7 +250,7 @@ const mainProjects = [
       if (!res.ok) throw new Error(`Commits request failed with ${res.status}`);
       renderCommits(container, await res.json());
     } catch {
-      container.replaceChildren(el('div', 'text-center text-error', "Couldn't load git commits. Refresh to try again."));
+      container.replaceChildren(textElement('div', 'text-center text-error', "Couldn't load git commits. Refresh to try again."));
     }
   }
 
