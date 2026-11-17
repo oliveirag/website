@@ -1,12 +1,14 @@
 ---
-// The site frame every page shares: the Field, the navigation with the theme toggle, and the Sky the page
-// fills. Pages change through Astro's client router, so the Field and the preferences carry over.
+// The site frame every page shares: the Field, the navigation with the theme toggle, the Sky the page
+// fills and the sound control. Pages change through Astro's client router, so the Field, the Ambience and
+// the preferences carry over.
 import { ClientRouter } from 'astro:transitions';
 import SpeedInsights from '@vercel/speed-insights/astro';
 import Navigation from '../components/Navigation.astro';
 import Field from '../components/Field.astro';
 import Sky from '../components/Sky.astro';
-import { themeBeforePaintScript, themeColors } from '../scripts/preferences';
+import SoundControl from '../components/SoundControl.astro';
+import { themeBeforePaintScript, mutedBeforePaintScript, themeColors } from '../scripts/preferences';
 import { oldLinksBeforePaintScript } from '../scripts/old-links';
 interface Props {
   title: string;
@@ -18,7 +20,7 @@ import '../styles/tokens.css';
 ---
 
 <!-- Pages swap with no animation: the Field carries on as it is, and input is never held up by a fade. -->
-<html lang="en" class="no-scrollbar" data-theme="night" transition:animate="none">
+<html lang="en" class="no-scrollbar" data-theme="night" data-sound="locked" transition:animate="none">
   <head>
     <script is:inline set:html={oldLinksBeforePaintScript} />
     <meta charset="UTF-8" />
@@ -29,6 +31,7 @@ import '../styles/tokens.css';
     <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
     <script is:inline set:html={themeBeforePaintScript} />
+    <script is:inline set:html={mutedBeforePaintScript} />
     <!-- Google tag (gtag.js). In the head and the same on every page, so it runs once per visit. -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-6LCTQSHDRD"></script>
     <script is:inline>
@@ -46,6 +49,7 @@ import '../styles/tokens.css';
     <Sky>
       <slot />
     </Sky>
+    <SoundControl />
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';
