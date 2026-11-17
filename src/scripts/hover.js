@@ -1,13 +1,13 @@
-import $ from "jquery";
+// Moves the radial glow on .glow-border and .glow-divider elements to follow the pointer.
 export function initializeHover(selector) {
-    $(document).on('mousemove click', function(e) {
-        $(selector).each(function() {
-            const rect = this.getBoundingClientRect(),
-                x = e.clientX - rect.left,
-                y = e.clientY - rect.top;
-            
-            this.style.setProperty("--mouse-x", `${x}px`);
-            this.style.setProperty("--mouse-y", `${y}px`);
+    const update = (e) => {
+        document.querySelectorAll(selector).forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+            el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
         });
-    });
+    };
+
+    document.addEventListener('mousemove', update);
+    document.addEventListener('click', update);
 }
