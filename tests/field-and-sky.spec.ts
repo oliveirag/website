@@ -226,16 +226,21 @@ test('browser find reaches text in the Sky and shows the match clear of the fade
   expect(shownInFull).toBe(true);
 });
 
+// Headless Chromium draws WebGL in software, and each frame of the scene costs time in proportion to its
+// pixels: about 4.5s at 1280x800 on the CI runner, during which the page's own scripts wait. A small
+// viewport keeps the scene running, and what this test proves doesn't depend on the size.
+const SCENE_VIEWPORT = { width: 320, height: 240 };
+
 test.describe('with the scene running', () => {
   test.use({ scene: true });
 
   test('switching theme changes the scene palette in place, without restarting the scene', async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
+    await page.setViewportSize(SCENE_VIEWPORT);
     await page.goto('/');
     const scene = field(page).locator('[data-palette]');
     await expect(scene).toHaveAttribute('data-palette', 'night');
-    // Where the browser has WebGL2 the scene draws into a canvas: wait for it before keeping hold of it.
     const hasWebGL2 = await page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
+    // Where the browser has WebGL2 the scene draws into a canvas: wait for it before keeping hold of it.
     if (hasWebGL2) await expect(field(page).locator('canvas')).toHaveCount(1);
     // Keep hold of the scene's elements, to tell afterwards whether they were replaced.
     await page.evaluate(() => {
