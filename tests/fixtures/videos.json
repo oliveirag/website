@@ -1,0 +1,5 @@
+[
+  { "youtubeId": "fixtureMid1", "title": "Fixture video from the summer hike", "date": "2026-06-20" },
+  { "youtubeId": "fixtureNew1", "title": "Fixture video, the newest one", "date": "2026-09-14" },
+  { "youtubeId": "fixtureOld1", "title": "Fixture video, the oldest one", "date": "2026-03-02" }
+]

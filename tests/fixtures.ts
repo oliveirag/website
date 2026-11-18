@@ -36,6 +36,12 @@ export const commits = {
 
 type Handler = (route: Route) => Promise<void> | void;
 
+// YouTube, which the Videos page reaches for thumbnails and, once play is pressed, the player.
+export const THUMBNAIL_HOST = 'https://i.ytimg.com';
+export const PLAYER_HOST = 'https://www.youtube-nocookie.com';
+// A 1x1 grey PNG, so a stubbed thumbnail loads as a real image.
+const THUMBNAIL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNoAAAAggCBd81ytgAAAABJRU5ErkJggg==', 'base64');
+
 export async function stubApis(page: Page, { nowPlaying, commits: commitsHandler }: { nowPlaying?: Handler; commits?: Handler }) {
   if (nowPlaying) await page.route(NOW_PLAYING_URL, nowPlaying);
   if (commitsHandler) await page.route(COMMITS_URL, commitsHandler);
@@ -76,6 +82,11 @@ export const test = base.extend<{ scene: boolean; intro: boolean }>({
     );
     await page.route('**/_vercel/**', (route) => route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
     await page.route(`${PROXY}/**`, (route) => route.abort('blockedbyclient'));
+    await page.route(`${THUMBNAIL_HOST}/**`, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: THUMBNAIL }));
+    await page.route(`${PLAYER_HOST}/**`, (route) =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>player</title><p>player</p>' }),
+    );
+    await page.route(/^https:\/\/([a-z0-9-]+\.)*(youtube\.com|googlevideo\.com|ggpht\.com)\//, (route) => route.abort('blockedbyclient'));
     await page.route(NOW_PLAYING_URL, reply.json(track));
     await page.route(COMMITS_URL, reply.json(commits));
     await use(page);

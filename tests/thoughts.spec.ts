@@ -2,7 +2,7 @@ import { test, expect, motionSettled, type Page } from './fixtures';
 import { contentOverField } from './field';
 import { textBelowAA } from './sky-text';
 
-// These run against the build with the fixture posts in tests/fixtures/thoughts (the "thoughts" project in
+// These run against the build with the fixture posts in tests/fixtures/thoughts (the "fixtures" project in
 // playwright.config.ts). The live build has no posts, and pages.spec.ts checks its empty state.
 
 const newestFirst = [

@@ -3,6 +3,8 @@
 // It reports its state on <html data-sound>: "locked" until the visitor's first gesture, then "playing",
 // or "muted" whenever the muted preference is on (before or after a gesture). The state describes what the
 // engine is doing, not what can be heard: with no Ambience file yet, "playing" is quiet between Cues.
+// It also reports the Ambience on <html data-ambience>: "playing" while sound is on, the tab is showing and no
+// video is playing on the page, "paused" otherwise. Cues carry on while a video plays.
 //
 // Nothing loads before the first gesture. On it, the engine starts an AudioContext, begins the Ambience
 // and fetches the Cue files. A Cue with no file is generated in code instead (generated-cues.ts). The audio lives outside the DOM and this module runs once per visit, so the
@@ -12,6 +14,7 @@ import { generatedCues, type CueName } from './generated-cues';
 import type { SoundFiles, SoundName } from './sound-files';
 
 export type SoundState = 'locked' | 'playing' | 'muted';
+export type AmbienceState = 'playing' | 'paused';
 export type { CueName };
 
 // Quiet by default, so it never startles. Gains run from 0 to 1.
@@ -27,6 +30,7 @@ let files: SoundFiles = {};
 let started = false;
 let unlocked = false;
 let muted = false;
+let videoPlaying = false;
 let context: AudioContext | undefined;
 let ambience: { element: HTMLAudioElement; gain?: GainNode } | undefined;
 let pauseTimer: ReturnType<typeof setTimeout> | undefined;
@@ -39,8 +43,13 @@ export function soundState(): SoundState {
   return unlocked ? 'playing' : 'locked';
 }
 
+export function ambienceState(): AmbienceState {
+  return unlocked && !muted && !videoPlaying && document.visibilityState === 'visible' ? 'playing' : 'paused';
+}
+
 function report() {
   document.documentElement.setAttribute('data-sound', soundState());
+  document.documentElement.setAttribute('data-ambience', ambienceState());
 }
 
 // The AudioContext, created on the first gesture.
@@ -80,10 +89,11 @@ function createAmbience(src: string) {
   return { element, gain };
 }
 
-// Plays the Ambience while the visitor has made a gesture, sound is on and the tab is showing; pauses it
-// otherwise. Pausing keeps its place, so it resumes where it left off.
+// Plays the Ambience while the visitor has made a gesture, sound is on, the tab is showing and no video is
+// playing; pauses it otherwise. Pausing keeps its place, so it resumes where it left off.
 function updateAmbience() {
-  const shouldPlay = unlocked && !muted && document.visibilityState === 'visible' && files.ambience;
+  report();
+  const shouldPlay = ambienceState() === 'playing' && files.ambience;
   if (shouldPlay) {
     // Also wakes the AudioContext, which some browsers suspend while the tab is hidden.
     audio();
@@ -156,7 +166,13 @@ export function playCue(cue: CueName) {
 
 function setMuted(value: boolean) {
   muted = value;
-  report();
+  updateAmbience();
+}
+
+// A video started (true) or its player left the page (false). The Ambience pauses while one plays, so the two
+// never sound over each other.
+export function setVideoPlaying(value: boolean) {
+  videoPlaying = value;
   updateAmbience();
 }
 

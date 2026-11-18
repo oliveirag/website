@@ -1,10 +1,57 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { videosNewestFirst, thumbnailFor } from '../scripts/videos';
+import { thoughtDay } from '../scripts/thoughts';
+
+const videos = await videosNewestFirst();
+// The thumbnail's button and the player that replaces it share one 16:9 box, so nothing moves on play.
+const frame = 'relative mb-2 block aspect-video w-full overflow-hidden rounded-lg border bg-raised';
 ---
 
 <Layout title="videos | gui's website">
   <div class="max-w-5xl w-full p-4 sm:p-8 flex flex-col gap-2">
-    <h1 class="text-lg font-bold">videos</h1>
-    <p class="text-secondary">no videos yet. coming soon.</p>
+    <h1>videos</h1>
+    {videos.length === 0 ? (
+      <p class="text-secondary">no videos yet. coming soon.</p>
+    ) : (
+      <ol aria-label="videos" class="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2">
+        {videos.map(({ data: video }) => (
+          <li class="flex flex-col gap-1 min-w-0">
+            <button
+              type="button"
+              class:list={[frame, 'group cursor-pointer']}
+              data-youtube-id={video.youtubeId}
+              data-title={video.title}
+              data-player-class={frame}
+            >
+              <img
+                src={thumbnailFor(video.youtubeId)}
+                alt=""
+                width="480"
+                height="360"
+                loading="lazy"
+                decoding="async"
+                class="absolute inset-0 h-full w-full object-cover"
+              />
+              <span
+                class="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-action text-on-action shadow-lg transition-transform duration-fast ease-out motion-safe:group-hover:scale-110"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" class="ml-1 h-6 w-6" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
+              </span>
+              <span class="sr-only">play {video.title}</span>
+            </button>
+            <h2 class="text-lg font-medium">{video.title}</h2>
+            <time datetime={thoughtDay(video.date)} class="text-sm text-secondary">{thoughtDay(video.date)}</time>
+          </li>
+        ))}
+      </ol>
+    )}
   </div>
 </Layout>
+
+<script>
+  import { followVideoPlayers } from '../scripts/video-player';
+
+  followVideoPlayers();
+</script>
