@@ -1,41 +1,54 @@
-import { test, expect, stubApis, reply, track, type Page } from './fixtures';
+import { test, expect, stubApis, reply, track, motionSettled, type Page } from './fixtures';
 
 const nowPlaying = (page: Page) => page.getByRole('region', { name: 'Now Playing' });
+const photo = (page: Page) => page.getByRole('img', { name: 'Guilherme Oliveira' });
+// What a visitor reads for the fixture track.
+const SHOWN = 'Pink + White - Frank Ocean';
 
 test.describe('Now Playing', () => {
-  test('shows the track when something is playing', async ({ page }) => {
+  test('shows one line, "title - artist", directly above the photo while a track plays', async ({ page }) => {
     await page.goto('/');
 
-    await expect(nowPlaying(page)).toContainText(track.title);
-    await expect(nowPlaying(page)).toContainText(track.artist);
-    await expect(nowPlaying(page)).not.toContainText('Loading...');
+    await expect(nowPlaying(page)).toBeVisible();
+    await expect(nowPlaying(page)).toHaveText(SHOWN);
+    await motionSettled(page);
+    const line = (await nowPlaying(page).boundingBox())!;
+    const picture = (await photo(page).boundingBox())!;
+    expect(line.height).toBeLessThanOrEqual(24);
+    expect(line.y + line.height).toBeLessThanOrEqual(picture.y);
+    expect(picture.y - (line.y + line.height)).toBeLessThanOrEqual(16);
+    expect(line.x).toBeGreaterThanOrEqual(picture.x - 1);
+    expect(line.x + line.width).toBeLessThanOrEqual(picture.x + picture.width + 1);
   });
 
-  test('shows offline when the API returns nothing', async ({ page }) => {
-    await stubApis(page, { nowPlaying: reply.noContent() });
-    await page.goto('/');
+  // Nothing shows, but the line keeps its place so the photo doesn't move.
+  async function expectHidden(page: Page) {
+    await expect(nowPlaying(page)).toHaveText('');
+    await expect(nowPlaying(page).locator(':visible')).toHaveCount(0);
+  }
 
-    await expect(nowPlaying(page)).toContainText('Currently offline');
-    await expect(nowPlaying(page)).not.toContainText('Loading...');
-  });
+  const nothingPlaying = {
+    'the API returns nothing (offline)': reply.noContent(),
+    'the track is paused': reply.json({ ...track, isPlaying: false }),
+    'the API fails': reply.serverError(),
+    'the request never reaches the API': reply.networkError(),
+  };
+  // Each case first shows a track, so hiding is proven to come from the answer and not from the page as built.
+  for (const [when, answer] of Object.entries(nothingPlaying)) {
+    test(`disappears when ${when}`, async ({ page }) => {
+      await page.clock.install();
+      let calls = 0;
+      await stubApis(page, { nowPlaying: (route) => (++calls === 1 ? reply.json(track)(route) : answer(route)) });
+      await page.goto('/');
+      await expect(nowPlaying(page)).toHaveText(SHOWN);
 
-  test('shows an error when the API fails', async ({ page }) => {
-    await stubApis(page, { nowPlaying: reply.serverError() });
-    await page.goto('/');
+      await page.clock.runFor(10_000);
 
-    await expect(nowPlaying(page)).toContainText("Couldn't load");
-    await expect(nowPlaying(page)).not.toContainText('Loading...');
-  });
+      await expectHidden(page);
+    });
+  }
 
-  test('shows an error when the request never reaches the API', async ({ page }) => {
-    await stubApis(page, { nowPlaying: reply.networkError() });
-    await page.goto('/');
-
-    await expect(nowPlaying(page)).toContainText("Couldn't load");
-    await expect(nowPlaying(page)).not.toContainText('Loading...');
-  });
-
-  test('shows a loading state until the API answers', async ({ page }) => {
+  test('shows nothing until the API answers, then the track', async ({ page }) => {
     let release!: () => void;
     const answered = new Promise<void>((resolve) => (release = resolve));
     await stubApis(page, {
@@ -46,9 +59,26 @@ test.describe('Now Playing', () => {
     });
     await page.goto('/');
 
-    await expect(nowPlaying(page)).toContainText('Loading...');
+    await expectHidden(page);
     release();
-    await expect(nowPlaying(page)).toContainText(track.title);
+    await expect(nowPlaying(page)).toHaveText(SHOWN);
+  });
+
+  test('the photo stays in place when a track starts playing', async ({ page }) => {
+    await page.clock.install();
+    let calls = 0;
+    await stubApis(page, {
+      nowPlaying: (route) => (++calls === 1 ? reply.noContent()(route) : reply.json(track)(route)),
+    });
+    await page.goto('/');
+    await expectHidden(page);
+    await motionSettled(page);
+    const before = (await photo(page).boundingBox())!;
+
+    await page.clock.runFor(10_000);
+
+    await expect(nowPlaying(page)).toHaveText(SHOWN);
+    expect((await photo(page).boundingBox())!.y).toBe(before.y);
   });
 
   test('renders the track as text, never as HTML', async ({ page }) => {
@@ -62,18 +92,4 @@ test.describe('Now Playing', () => {
     await expect(page.locator('#injected-title, #injected-artist')).toHaveCount(0);
   });
 
-  test('keeps updating without going back to loading', async ({ page }) => {
-    await page.clock.install();
-    let calls = 0;
-    await stubApis(page, {
-      nowPlaying: (route) => (++calls === 1 ? reply.json(track)(route) : reply.noContent()(route)),
-    });
-    await page.goto('/');
-    await expect(nowPlaying(page)).toContainText(track.title);
-
-    await page.clock.runFor(10_000);
-
-    await expect(nowPlaying(page)).toContainText('Currently offline');
-    await expect(nowPlaying(page)).not.toContainText('Loading...');
-  });
 });
