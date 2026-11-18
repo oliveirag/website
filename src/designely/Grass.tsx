@@ -13,7 +13,8 @@
  * Copyright (c) 2026 DESIGNELY LTD. Licensed only to play this export; see app.designely.studio/licence
  *
  * Edited for notgui.com: the scene settings the export kept inside PARAMS (horizon, camera height, dry colour,
- * flower colour, sky mode and quality) are props too, and the artboard size is exported. Nothing else changed.
+ * flower colour, sky mode and quality) are props too, and the artboard size is exported. An onUnavailable prop
+ * says when the scene couldn't start (no WebGL2), so the page can show something else. Nothing else changed.
  */
 "use client";
 
@@ -61,6 +62,8 @@ export interface GrassProps {
   style?: CSSProperties;
   /** Holds the scene on its current frame while true. */
   paused?: boolean;
+  /** Called once if the scene couldn't start, as in a browser without WebGL2. Added for notgui.com. */
+  onUnavailable?: () => void;
 }
 
 /** The modules of designely-runtime.js this component needs (the engine warns if one is missing). */
@@ -110,7 +113,7 @@ const SCENE = {
 /** The artboard's size. The scene scales it to cover the stage, so a stage of another shape crops it. */
 export const grassArtboard = { width: SCENE.canvas.width, height: SCENE.canvas.height };
 
-type Settings = Omit<GrassProps, "className" | "style" | "paused">;
+type Settings = Omit<GrassProps, "className" | "style" | "paused" | "onUnavailable">;
 
 /** A number kept between min and max (whole when asked), or undefined when it isn't a number. */
 function numberIn(value: number | undefined, min: number, max: number, whole = false): number | undefined {
@@ -155,13 +158,13 @@ function sceneWith(settings: Settings): DesignelyScene {
   return { ...SCENE, layers: [{ ...LAYER, params }] };
 }
 
-export default function Grass({ className, style, paused = false, ...settings }: GrassProps) {
+export default function Grass({ className, style, paused = false, onUnavailable, ...settings }: GrassProps) {
   const stage = useRef<HTMLDivElement>(null);
   const handle = useRef<DesignelyHandle | null>(null);
   const scene = sceneWith(settings);
   const key = JSON.stringify(scene.layers[0]!.params);
-  const latest = useRef({ scene, key, paused });
-  latest.current = { scene, key, paused };
+  const latest = useRef({ scene, key, paused, onUnavailable });
+  latest.current = { scene, key, paused, onUnavailable };
   const shown = useRef("");
 
   // The scene starts in the browser only (never during server rendering) and stops when the component goes.
@@ -171,6 +174,8 @@ export default function Grass({ className, style, paused = false, ...settings }:
     handle.current = running;
     shown.current = latest.current.key;
     if (running && latest.current.paused) running.pause();
+    // Without WebGL2 the engine still returns a handle but adds no canvas (the same check its own warning makes).
+    if (!running || !stage.current.querySelector("canvas")) latest.current.onUnavailable?.();
     // A stage with no size draws nothing, and nothing else says so: after the first layout, say it once.
     const element = stage.current;
     const check = requestAnimationFrame(() => {
