@@ -43,7 +43,7 @@ The yearly GitHub commit count and per-repository ranking shown under Projects.
 _Avoid_: Contributions, git stats
 
 **Now Playing**:
-The Spotify widget showing the current or most recent track.
+The line above the photo in About showing the track playing on Spotify right now. It disappears when nothing is playing.
 _Avoid_: Spotify widget
 
 **Chatbot**:

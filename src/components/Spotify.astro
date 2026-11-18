@@ -1,82 +1,62 @@
----
-import SpotifyIcon from '../icons/SpotifyIcon.astro';
----
-
+<!-- One line above the photo, shown only while a track is playing. The line keeps its height when hidden, so the photo never moves. -->
 <section
     id="now-playing"
     aria-label="Now Playing"
     aria-live="polite"
-    class="spotify-hover glow-border h-12 w-1/2 md:w-64 rounded-lg p-2 flex items-center"
+    class="h-6 w-full flex items-center justify-center text-sm text-secondary"
 >
-    <SpotifyIcon />
-    <div class="flex items-center flex-1 min-w-0">
-        <div id="now-playing-status" class="my-auto text-sm text-secondary">Loading...</div>
-        <div id="now-playing-song" class="hidden text-xs w-full">
-            <strong id="now-playing-title" class="block truncate text-primary"></strong>
-            <p id="now-playing-artist" class="block truncate text-secondary"></p>
-        </div>
-    </div>
+    <span id="now-playing-line" class="invisible flex items-center gap-2 min-w-0">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 shrink-0">
+            <path d="M8.5 5.5 21 2.75V6L8.5 8.75Z" />
+            <rect x="8.5" y="6" width="1.75" height="12" />
+            <rect x="19.25" y="3.5" width="1.75" height="12.5" />
+            <ellipse cx="6.25" cy="18" rx="3.5" ry="2.75" transform="rotate(-20 6.25 18)" />
+            <ellipse cx="17" cy="16" rx="3.5" ry="2.75" transform="rotate(-20 17 16)" />
+        </svg>
+        <span id="now-playing-track" class="truncate"></span>
+    </span>
 </section>
 
 <script>
-  import { initializeHover } from '../scripts/hover.js';
   import { onEveryPage } from '../scripts/page-lifecycle';
 
   const NOW_PLAYING_URL = 'https://my-website-spotify-api.vercel.app/api/spotify';
   const POLL_MS = 10_000;
 
   type Track = { title: string; artist: string };
-  type State = { name: 'playing'; track: Track } | { name: 'offline' } | { name: 'error' };
 
   // The proxy answers 200 with a track, 204 with no body when offline, and 500 when it fails.
-  async function fetchState(): Promise<State> {
+  // Anything but a track that is playing right now hides the line.
+  async function fetchTrack(): Promise<Track | null> {
     try {
       const res = await fetch(NOW_PLAYING_URL);
-      if (!res.ok) return { name: 'error' };
-      if (res.status === 204) return { name: 'offline' };
+      if (!res.ok || res.status === 204) return null;
       const data = await res.json();
-      if (data && typeof data.title === 'string') {
-        return { name: 'playing', track: { title: data.title, artist: String(data.artist ?? '') } };
-      }
-      return { name: 'offline' };
+      if (!data || typeof data.title !== 'string' || data.isPlaying === false) return null;
+      return { title: data.title, artist: String(data.artist ?? '') };
     } catch {
-      return { name: 'error' };
+      return null;
     }
   }
 
   // Draws into the Now Playing on the page showing now: pages change, and a reply can land after a change.
-  function render(state: State) {
-    const status = document.getElementById('now-playing-status');
-    const song = document.getElementById('now-playing-song');
-    const title = document.getElementById('now-playing-title');
-    const artist = document.getElementById('now-playing-artist');
-    if (!status || !song || !title || !artist) return;
-    if (state.name === 'playing') {
-      title.textContent = state.track.title;
-      artist.textContent = state.track.artist;
-      status.textContent = '';
-      status.classList.add('hidden');
-      song.classList.remove('hidden');
-      return;
-    }
-    title.textContent = '';
-    artist.textContent = '';
-    song.classList.add('hidden');
-    status.textContent = state.name === 'offline' ? 'Currently offline' : "Couldn't load";
-    status.classList.remove('hidden');
+  function render(track: Track | null) {
+    const line = document.getElementById('now-playing-line');
+    const trackText = document.getElementById('now-playing-track');
+    if (!line || !trackText) return;
+    trackText.textContent = track ? [track.title, track.artist].filter(Boolean).join(' - ') : '';
+    line.classList.toggle('invisible', !track);
   }
 
   // Redraw only when something changed, so the live region doesn't re-announce the same track every poll.
   let lastRendered = '';
   async function refresh() {
-    const state = await fetchState();
-    const key = JSON.stringify(state);
+    const track = await fetchTrack();
+    const key = JSON.stringify(track);
     if (key === lastRendered) return;
     lastRendered = key;
-    render(state);
+    render(track);
   }
-
-  initializeHover('.spotify-hover');
 
   // Polls while a page with Now Playing is showing, starting fresh each time one is shown.
   onEveryPage(() => {
