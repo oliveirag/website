@@ -31,5 +31,6 @@ pnpm-debug.log*
 test-results/
 playwright-report/
 
-# the build with the fixture Thoughts posts, for the tests only
+# the test builds: one with the fixture posts and videos, one with none
 dist-fixtures/
+dist-empty/

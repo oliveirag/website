@@ -1,10 +1,10 @@
-import { test, expect, motionSettled, PLAYER_HOST, type Page } from './fixtures';
+import { test, expect, motionSettled, PLAYER_HOST, THUMBNAIL_HOST, type Page } from './fixtures';
 import { contentOverField } from './field';
 import { textBelowAA } from './sky-text';
 
 // These run against the build with the fixture list in tests/fixtures/videos.json (the "fixtures" project in
-// playwright.config.ts), whose entries are out of date order on purpose. The live build has no videos, and
-// pages.spec.ts checks its empty state.
+// playwright.config.ts), whose entries are out of date order on purpose. empty-states.spec.ts covers the page
+// with no videos, and pages.spec.ts checks these never reach the live build.
 
 const newestFirst = [
   { id: 'fixtureNew1', title: 'Fixture video, the newest one', date: '2026-09-14' },
@@ -26,7 +26,7 @@ test('Videos lists the videos newest first with a thumbnail, title and date', as
     await expect(item.locator('time')).toHaveText(video.date);
     await expect(item.locator('time')).toHaveAttribute('datetime', video.date);
     const thumbnail = item.locator('img');
-    await expect(thumbnail).toHaveAttribute('src', `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`);
+    await expect(thumbnail).toHaveAttribute('src', new RegExp(`^${THUMBNAIL_HOST}/vi/${video.id}/`));
     await thumbnail.scrollIntoViewIfNeeded();
     await expect.poll(() => thumbnail.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   }
