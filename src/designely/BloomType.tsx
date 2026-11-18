@@ -1134,6 +1134,8 @@ export type Palette = {
   text: string;
   background: string;
   engraved: boolean;
+  /** Added for notgui.com: no vignette or grain, so the background is one flat colour. */
+  plain?: boolean;
 };
 export const TAU = Math.PI * 2;
 export const hash = (v: number) => {
@@ -2154,7 +2156,7 @@ export function createEngine(canvas: HTMLCanvasElement, manual = false): Engine 
       vignette.addColorStop(0, 'rgba(0,0,0,0)');
       vignette.addColorStop(1, 'rgba(0,0,0,.09)');
     }
-    if (!pal.engraved) {
+    if (!pal.engraved && !pal.plain) {
       ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, w, h);
     }
@@ -2173,7 +2175,7 @@ export function createEngine(canvas: HTMLCanvasElement, manual = false): Engine 
       gc.putImageData(img, 0, 0);
       grain = ctx.createPattern(g, 'repeat');
     }
-    if (grain) {
+    if (grain && !pal.plain) {
       ctx.fillStyle = grain;
       ctx.fillRect(0, 0, w, h);
     }
@@ -2438,6 +2440,16 @@ export function createEngine(canvas: HTMLCanvasElement, manual = false): Engine 
       raf = requestAnimationFrame(frame);
     }
   }
+  // Added for notgui.com: where the lettering sits at rest, as "x baseline width fontSize" in CSS pixels from the
+  // canvas's top left, so the page can line its own text up with the drawn word.
+  function publishTextBox() {
+    const first = comp!.letters[0],
+      lastL = comp!.letters[comp!.letters.length - 1];
+    if (!first || !lastL || !canvas.width) return;
+    const k = cssW / canvas.width;
+    const box = [padX + first.x * scale, offY + (comp!.baseline + OY) * scale, (lastL.x + lastL.width - first.x) * scale, comp!.fontSize * scale].map(v => (v * k).toFixed(2)).join(' ');
+    if (canvas.dataset.textBox !== box) canvas.dataset.textBox = box;
+  }
   function render(dt: number) {
     const p = props!,
       w = canvas.width,
@@ -2452,6 +2464,7 @@ export function createEngine(canvas: HTMLCanvasElement, manual = false): Engine 
     ground(w, h);
     ctx.setTransform(scale, 0, 0, scale, padX, offY);
     if (!ready || !comp) return;
+    publishTextBox();
     ctx.translate(0, OY);
     const dur = 2.4 / Math.max(.25, p.speed);
     const pal = p.palette,
@@ -2712,7 +2725,8 @@ function BloomDrawing({
     leaf,
     text: ink,
     background,
-    engraved
+    engraved,
+    plain
   } = palette;
   useEffect(() => {
     const props: EngineProps = {
@@ -2725,7 +2739,8 @@ function BloomDrawing({
         leaf,
         text: ink,
         background,
-        engraved
+        engraved,
+        plain
       },
       motion,
       seed,
@@ -2739,7 +2754,7 @@ function BloomDrawing({
       replay: replayVersion
     };
     engine.current?.update(props);
-  }, [text, font, fontUrl, flower, stem, leaf, ink, background, engraved, motion, seed, density, speed, wind, mix, vine, size, paused, replayVersion]);
+  }, [text, font, fontUrl, flower, stem, leaf, ink, background, engraved, plain, motion, seed, density, speed, wind, mix, vine, size, paused, replayVersion]);
   return <div className="botanical-art" style={{
     background,
     width: '100%',
@@ -2780,6 +2795,8 @@ export interface BloomTypeProps {
   paused?: boolean;
   className?: string;
   style?: CSSProperties;
+  /** Added for notgui.com: draw the background as one flat colour, with no vignette or grain. */
+  plain?: boolean;
   /** Folder the font files are served from (default /fonts/). */
   fontBase?: string;
   /** Overrides the address of the chosen font's file. */
@@ -2805,7 +2822,8 @@ export function resolveBloomProps(props: BloomTypeProps) {
       leaf: String(p.leafColour),
       text: String(p.textColour),
       background: String(p.backgroundColour),
-      engraved: p.illustration === 'Engraved'
+      engraved: p.illustration === 'Engraved',
+      plain: props.plain === true
     },
     motion: oneOf(p.motion, ['Breathe', 'Grow & Wither', 'Gust'], 'Breathe'),
     mix: String(p.flowerMix),

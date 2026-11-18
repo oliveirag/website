@@ -162,12 +162,151 @@ async function recordFadeOut(page: Page) {
   return () => page.locator('html').getAttribute('data-test-intro-fade');
 }
 
-test('the Intro crossfades into Home', async ({ page }) => {
-  const fadeOut = await recordFadeOut(page);
+// Waits until Bloom Type has drawn the name, so ending the Intro starts the full transition.
+async function nameDrawn(page: Page, name = /^guilherme oliveira/) {
+  await expect(intro(page).getByRole('img', { name })).toHaveAttribute('data-ready', '1');
+}
+
+// Remembers the animations already on the page, so leavingAnimations can tell which ones ending the Intro
+// started. Home's own entrance animations run under the Intro and are not part of its exit.
+async function markAnimations(page: Page) {
+  await page.evaluate(() => {
+    (window as unknown as { animationsBefore: Set<Animation> }).animationsBefore = new Set(document.getAnimations());
+  });
+}
+
+// Every animation that ending the Intro started: what it animates, for how long and with what easing.
+async function leavingAnimations(page: Page) {
+  return page.evaluate(() =>
+    document.getAnimations().filter((animation) => !(window as unknown as { animationsBefore: Set<Animation> }).animationsBefore.has(animation)).map((animation) => {
+      const effect = animation.effect as KeyframeEffect;
+      const timing = effect.getComputedTiming();
+      const properties = new Set<string>();
+      const easings = [String(effect.getTiming().easing)];
+      for (const frame of effect.getKeyframes()) {
+        if (frame.easing) easings.push(String(frame.easing));
+        for (const key of Object.keys(frame)) {
+          if (!['offset', 'computedOffset', 'easing', 'composite'].includes(key)) properties.add(key);
+        }
+      }
+      return { properties: [...properties], duration: Number(timing.duration), easing: easings.join(' ') };
+    }),
+  );
+}
+
+test('the Intro turns into Home in about 900ms, easing out and moving only transform and opacity', async ({ page }) => {
   await page.goto('/');
+  await nameDrawn(page);
+  await markAnimations(page);
+
   await page.keyboard.press('Enter');
+  const animations = await leavingAnimations(page);
+
+  expect(animations.length).toBeGreaterThan(0);
+  for (const animation of animations) {
+    for (const property of animation.properties) expect(['transform', 'opacity']).toContain(property);
+    expect(animation.duration).toBeLessThanOrEqual(900);
+    expect(animation.easing).not.toMatch(/ease-in(?!-out)/);
+  }
+  expect(Math.max(...animations.map((animation) => animation.duration))).toBe(900);
   await expectHomeShown(page);
-  expect(await fadeOut()).toBe('0.4s');
+  await expect(homeHeading(page)).toHaveCSS('opacity', '1');
+});
+
+test('the Field rises from below the screen as the Intro ends', async ({ page }) => {
+  await page.goto('/');
+  const viewport = page.viewportSize()!;
+  const field = page.locator('#field');
+  // While the Intro shows, the grass waits below the bottom of the screen.
+  expect((await field.boundingBox())!.y).toBeGreaterThanOrEqual(viewport.height);
+
+  await page.keyboard.press('Enter');
+
+  await expectHomeShown(page);
+  await expect.poll(async () => {
+    const box = (await field.boundingBox())!;
+    return box.y + box.height;
+  }).toBe(viewport.height);
+});
+
+// The Intro's state at the moment each kind of input reaches the page, recorded before anything handles it.
+async function recordInputMoments(page: Page) {
+  await page.evaluate(() => {
+    const moments: Record<string, string> = {};
+    (window as unknown as { inputMoments: Record<string, string> }).inputMoments = moments;
+    for (const type of ['wheel', 'pointerdown']) {
+      window.addEventListener(type, () => (moments[type] ??= document.documentElement.dataset.intro ?? 'gone'), true);
+    }
+  });
+  return () => page.evaluate(() => (window as unknown as { inputMoments: Record<string, string> }).inputMoments);
+}
+
+test('while the Intro turns into Home, a scroll moves the Sky straight away', async ({ page }) => {
+  await page.goto('/');
+  await nameDrawn(page);
+  const moments = await recordInputMoments(page);
+  const viewport = page.viewportSize()!;
+  await page.mouse.move(viewport.width / 2, viewport.height / 3);
+
+  await page.keyboard.press('Enter');
+  await page.mouse.wheel(0, 400);
+
+  await expect.poll(() => page.locator('#sky').evaluate((sky) => sky.scrollTop)).toBeGreaterThan(0);
+  expect((await moments()).wheel).toBe('leaving');
+  await expectHomeShown(page);
+});
+
+test('while the Intro turns into Home, a click follows a link straight away', async ({ page }) => {
+  await page.goto('/');
+  await nameDrawn(page);
+  const moments = await recordInputMoments(page);
+  const { x, y } = await overHomeLink(page);
+
+  await page.keyboard.press('Enter');
+  await page.mouse.click(x, y);
+
+  await expect(page).toHaveURL('/thoughts');
+  expect((await moments()).pointerdown).toBe('leaving');
+});
+
+test('the click that ends the Intro follows nothing, and the next click works straight away', async ({ page }) => {
+  await page.goto('/');
+  await nameDrawn(page);
+  const { x, y } = await overHomeLink(page);
+
+  await page.mouse.click(x, y);
+  await expect(page.locator('html')).toHaveAttribute('data-intro', 'leaving');
+  await expect(page).toHaveURL('/');
+
+  await page.mouse.click(x, y);
+  await expect(page).toHaveURL('/thoughts');
+});
+
+test.describe('on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('the Intro shows the name on two lines, "guilherme" over "oliveira"', async ({ page }) => {
+    await page.goto('/');
+    const first = intro(page).getByRole('img', { name: /^guilherme,/ });
+    const second = intro(page).getByRole('img', { name: /^oliveira,/ });
+    await expect(first).toHaveAttribute('data-ready', '1');
+    await expect(second).toHaveAttribute('data-ready', '1');
+    await expect(intro(page).getByRole('img', { name: /^guilherme oliveira/ })).toHaveCount(0);
+
+    // Both words sit in the middle of the screen, the first above the second.
+    const a = (await first.boundingBox())!;
+    const b = (await second.boundingBox())!;
+    expect(a.y + a.height / 2).toBeLessThan(b.y + b.height / 2);
+    for (const box of [a, b]) expect(Math.abs(box.x + box.width / 2 - 195)).toBeLessThanOrEqual(1);
+  });
+
+  test('a tap during the move to Home is not held up by it', async ({ page }) => {
+    await page.goto('/');
+    await nameDrawn(page, /^oliveira,/);
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'menu' }).click();
+    await expect(page.getByRole('link', { name: 'thoughts' })).toBeVisible();
+  });
 });
 
 test.describe('with reduced motion', () => {
@@ -180,7 +319,18 @@ test.describe('with reduced motion', () => {
     // Bloom Type draws its fully grown still frame by itself under reduced motion.
     await expect(intro(page).getByRole('img', { name: /^guilherme oliveira/ })).toBeVisible();
 
+    // The grass is in place from the start: nothing travels.
+    const field = (await page.locator('#field').boundingBox())!;
+    expect(field.y + field.height).toBe(page.viewportSize()!.height);
+
+    await markAnimations(page);
     await page.keyboard.press('Enter');
+    const animations = await leavingAnimations(page);
+    expect(animations.length).toBeGreaterThan(0);
+    for (const animation of animations) {
+      expect(animation.properties).toEqual(['opacity']);
+      expect(animation.duration).toBe(150);
+    }
 
     await expectHomeShown(page);
     expect(await fadeOut()).toBe('0.15s');

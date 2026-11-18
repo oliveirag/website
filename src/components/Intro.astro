@@ -2,6 +2,7 @@
 // The Intro: full screen over Home on the first visit in a browser session. It shows only while <html> has
 // data-intro (set before first paint by the head script), so a returning visitor never sees it and a page
 // without JavaScript never shows it. Bloom Type draws into the stage after first paint (src/scripts/intro.ts).
+// When it ends, the name travels into Home's heading in the flight layer, above the fading cover.
 import { introCustomProperties } from '../scripts/scene-palette';
 ---
 
@@ -11,8 +12,15 @@ import { introCustomProperties } from '../scripts/scene-palette';
   <p id="intro-hint" class="intro-hint">click, tap or press any key to continue</p>
   <button type="button" class="intro-skip" data-intro-skip>skip intro</button>
 </div>
+<div class="intro-flight" data-intro-flight aria-hidden="true"></div>
 
 <style is:global>
+  :root {
+    /* The move into Home is long for UI motion, so it eases out more gently than --ease-out, which would
+       finish most of a 900ms move in its first 200ms. */
+    --intro-travel-ease: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
   .intro {
     display: none;
   }
@@ -30,8 +38,64 @@ import { introCustomProperties } from '../scripts/scene-palette';
     transition: opacity var(--intro-fade, 400ms) var(--ease-out);
   }
 
-  /* The fade lets Home take input straight away, apart from a pointer press that is still finishing. */
+  /* Leaving, the cover fades off Home and lets every press, scroll and tap through to it at once. */
   :root[data-intro='leaving'] .intro {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* The Field rises from below the screen as the Intro leaves (900ms, as in src/scripts/intro.ts). Under
+     reduced motion it stays where it is. */
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-intro='showing'] #field {
+      transform: translateY(100%);
+    }
+    :root[data-intro='leaving'] #field {
+      transition: transform 900ms var(--intro-travel-ease);
+    }
+  }
+
+  /* The name on its way to the heading: real text above the fading cover, one piece per word. */
+  .intro-flight {
+    display: none;
+  }
+
+  :root[data-intro='leaving'] .intro-flight {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 101;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .intro-flight-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+
+  .intro-flight-word {
+    display: inline-block;
+    position: relative;
+    transform-origin: 0 0;
+  }
+
+  /* The same word in the heading's colour, over the word in the Intro's ink. It fades in as the word travels. */
+  .intro-flight-settled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+  }
+
+  /* The heading waits, hidden, while its words are in flight. */
+  #sky h1[data-intro-flying] {
     opacity: 0;
   }
 
@@ -39,9 +103,21 @@ import { introCustomProperties } from '../scripts/scene-palette';
     outline: none;
   }
 
+  /* The drawing blends onto the Intro's sky as one layer, so it can drift off without its background showing. */
   .intro-stage {
     position: absolute;
     inset: 0;
+    mix-blend-mode: var(--intro-blend);
+  }
+
+  .intro-lines {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .intro-line {
+    position: absolute;
   }
 
   .intro-hint {
