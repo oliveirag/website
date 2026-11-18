@@ -15,9 +15,19 @@ import { skyCustomProperties } from '../scripts/scene-palette';
 
 <style is:global>
   :root {
-    /* The share of the viewport the grass fills. Phones get their own value later. */
+    /* The share of the viewport the grass fills, and the quality the scene draws at. */
     --field-share: 0.3;
+    --field-quality: high;
     --field-height: calc(var(--field-share) * 100vh);
+  }
+
+  /* Phones, upright or on their side: less grass, so there is more Sky to read in, drawn at the scene's
+     lighter quality. FieldScene reads both values from here, so the band and the scene always agree. */
+  @media (max-width: 639px), (max-height: 499px) {
+    :root {
+      --field-share: 0.22;
+      --field-quality: fast;
+    }
   }
 
   .field-sky {
@@ -36,5 +46,30 @@ import { skyCustomProperties } from '../scripts/scene-palette';
     height: var(--field-height);
     z-index: 0;
     pointer-events: none;
+  }
+
+  /* Without WebGL2 the band shows a still of the grass, rendered from the real scene in each theme (see
+     scripts/render-field-stills.mjs). Its top edge is the grass line, so it is anchored there and fills the
+     band. Both themes' stills are present, so switching theme never waits for a download. */
+  .field-still {
+    position: absolute;
+    inset: 0;
+    background-position: top center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0;
+  }
+
+  .field-still-night {
+    background-image: url('/images/field/grass-night.webp');
+  }
+
+  .field-still-day {
+    background-image: url('/images/field/grass-day.webp');
+  }
+
+  :root:not([data-theme='day']) .field-still-night,
+  :root[data-theme='day'] .field-still-day {
+    opacity: 1;
   }
 </style>
