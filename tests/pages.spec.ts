@@ -49,38 +49,18 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
-for (const [route, heading, emptyState] of [
-  ['/thoughts', 'thoughts', 'nothing written yet. check back soon.'],
-  ['/videos', 'videos', 'no videos yet. coming soon.'],
-]) {
-  test(`${heading} exists and shows only its empty state`, async ({ page }) => {
-    await page.goto(route);
-    await expect(page).toHaveTitle(new RegExp(heading));
-    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-    await expect(page.getByText(emptyState)).toBeVisible();
-    await expect(page.getByRole('main').getByRole('link')).toHaveCount(0);
-  });
-}
-
-test('the live build has no Thoughts posts: its feed is empty and the test posts are not there', async ({ page }) => {
+// The fixture posts and videos only ever reach the test builds. These hold whatever the real lists contain.
+test('the live build has none of the test posts, in its pages or its feed', async ({ page }) => {
   const feed = await page.request.get('/thoughts/rss.xml');
   expect(feed.status()).toBe(200);
-  const items = await page.evaluate(
-    (xml) => new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('channel > item').length,
-    await feed.text(),
-  );
-  expect(items).toBe(0);
+  expect(await feed.text()).not.toContain('Fixture post');
   for (const slug of ['on-the-ridge', 'a-short-one', 'first-light']) {
     expect((await page.request.get(`/thoughts/${slug}/`)).status(), slug).toBe(404);
   }
 });
 
-test('the live build has no videos: no list, no player and none of the test videos', async ({ page }) => {
-  await page.goto('/videos');
-  await expect(page.getByText('no videos yet. coming soon.')).toBeVisible();
-  await expect(page.getByRole('main').getByRole('list')).toHaveCount(0);
-  await expect(page.getByRole('main').getByRole('button')).toHaveCount(0);
-  await expect(page.getByRole('main').locator('img, iframe')).toHaveCount(0);
+test('the live build has none of the test videos', async ({ page }) => {
   const html = await (await page.request.get('/videos')).text();
   for (const id of ['fixtureNew1', 'fixtureMid1', 'fixtureOld1']) expect(html, id).not.toContain(id);
+  expect(html).not.toContain('Fixture video');
 });

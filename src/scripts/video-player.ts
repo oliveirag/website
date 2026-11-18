@@ -1,6 +1,6 @@
 // A video's player loads only when the visitor presses play. Until then the page holds YouTube's still for it
 // and a button, and asks YouTube for nothing else: no scripts, no frames. Pressing play swaps the button for
-// the player from youtube-nocookie.com, which sets no cookies until the video plays, and starts it.
+// YouTube's privacy-enhanced player (youtube-nocookie.com) and starts the video.
 //
 // One listener on the document serves every play button on every page, so it works after a client-side page
 // change without setting anything up again.
@@ -24,7 +24,7 @@ export function followVideoPlayers() {
     player.allowFullscreen = true;
     // YouTube refuses to play an embed that doesn't say which site it's on.
     player.referrerPolicy = 'strict-origin-when-cross-origin';
-    player.className = button.dataset.playerClass ?? '';
+    player.className = button.className;
     button.replaceWith(player);
     player.focus();
     setVideoPlaying(true);

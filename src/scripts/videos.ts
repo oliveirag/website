@@ -1,11 +1,11 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { newestFirst } from './dated';
 
 export type Video = CollectionEntry<'videos'>;
 
-// Every video, newest first. Videos from the same day keep the order of their YouTube IDs.
+// Every video, newest first.
 export async function videosNewestFirst(): Promise<Video[]> {
-  const videos = await getCollection('videos');
-  return videos.sort((a, b) => b.data.date.getTime() - a.data.date.getTime() || a.id.localeCompare(b.id));
+  return (await getCollection('videos')).sort(newestFirst);
 }
 
 // YouTube's own still for the video. hqdefault exists for every video; the bigger sizes don't always.

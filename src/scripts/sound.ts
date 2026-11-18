@@ -132,10 +132,7 @@ function loadCue(name: SoundName): Promise<AudioBuffer | null> {
 // times; each call also retries starting the audio, in case the browser didn't count an earlier gesture.
 export function unlockSound() {
   if (!started) return;
-  if (!unlocked) {
-    unlocked = true;
-    report();
-  }
+  unlocked = true;
   audio();
   for (const name of ['cue-link', 'cue-theme', 'cue-chatbot'] as const) if (files[name]) loadCue(name);
   updateAmbience();

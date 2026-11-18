@@ -3,7 +3,8 @@ import { contentOverField } from './field';
 import { textBelowAA } from './sky-text';
 
 // These run against the build with the fixture posts in tests/fixtures/thoughts (the "fixtures" project in
-// playwright.config.ts). The live build has no posts, and pages.spec.ts checks its empty state.
+// playwright.config.ts). empty-states.spec.ts covers the page with no posts, and pages.spec.ts checks these never
+// reach the live build.
 
 const newestFirst = [
   { title: 'Fixture post on the ridge', date: '2026-09-14', summary: 'The newest fixture post, long enough to scroll, with every kind of text a post can hold.', href: '/thoughts/on-the-ridge/' },

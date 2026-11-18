@@ -1,10 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { videosNewestFirst, thumbnailFor } from '../scripts/videos';
-import { thoughtDay } from '../scripts/thoughts';
+import { dayOf } from '../scripts/dated';
 
 const videos = await videosNewestFirst();
-// The thumbnail's button and the player that replaces it share one 16:9 box, so nothing moves on play.
+// The thumbnail's button and the player that replaces it share one 16:9 box, so nothing moves on play: the
+// player takes the button's classes.
 const frame = 'relative mb-2 block aspect-video w-full overflow-hidden rounded-lg border bg-raised';
 ---
 
@@ -22,7 +23,6 @@ const frame = 'relative mb-2 block aspect-video w-full overflow-hidden rounded-l
               class:list={[frame, 'group cursor-pointer']}
               data-youtube-id={video.youtubeId}
               data-title={video.title}
-              data-player-class={frame}
             >
               <img
                 src={thumbnailFor(video.youtubeId)}
@@ -42,7 +42,7 @@ const frame = 'relative mb-2 block aspect-video w-full overflow-hidden rounded-l
               <span class="sr-only">play {video.title}</span>
             </button>
             <h2 class="text-lg font-medium">{video.title}</h2>
-            <time datetime={thoughtDay(video.date)} class="text-sm text-secondary">{thoughtDay(video.date)}</time>
+            <time datetime={dayOf(video.date)} class="text-sm text-secondary">{dayOf(video.date)}</time>
           </li>
         ))}
       </ol>
