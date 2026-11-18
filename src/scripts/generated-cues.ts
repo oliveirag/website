@@ -1,6 +1,7 @@
 // Cues generated in code with Web Audio, used for any Cue that has no file in public/sounds/.
 // Nothing is downloaded: each one is built from noise or a few tones at the moment it plays.
-// The levels are the ones picked by ear, played at full volume.
+// The levels are the ones picked by ear, played at full volume. The theme chime was later halved, by ear, next
+// to the real Ambience.
 import type { Theme } from './preferences';
 
 export type CueName = 'link' | 'theme' | 'chatbot';
@@ -42,9 +43,12 @@ export const generatedCues: Record<CueName, Play> = {
   // A two-note chime, E5 and B5: it rises when Day comes on and falls when Night does.
   theme(ctx, destination, theme) {
     const at = ctx.currentTime + 0.01;
-    const [first, second] = theme === 'day' ? [659.25, 987.77] : [987.77, 659.25];
-    tone(ctx, destination, first, first < second ? 0.35 : 0.3, 0.18, at, 'triangle');
-    tone(ctx, destination, second, first < second ? 0.3 : 0.35, 0.25, at + 0.09, 'triangle');
+    // The lower note is always a little louder, whichever comes first.
+    const e5 = { frequency: 659.25, peak: 0.175 };
+    const b5 = { frequency: 987.77, peak: 0.15 };
+    const [first, second] = theme === 'day' ? [e5, b5] : [b5, e5];
+    tone(ctx, destination, first.frequency, first.peak, 0.18, at, 'triangle');
+    tone(ctx, destination, second.frequency, second.peak, 0.25, at + 0.09, 'triangle');
   },
 
   // Two soft notes, G5 then C6, for a message sent.
