@@ -86,14 +86,30 @@ test('there is no scroll hint when everything fits in the Sky', async ({ page })
 
 const skyScrollTop = (page: Page) => sky(page).evaluate((el) => el.scrollTop);
 
+// The keys scroll smoothly, so the Sky keeps moving after a press. A key pressed mid-scroll adds to where the
+// scroll is heading, not to where the Sky is now, so each step waits for the Sky to stop before reading it.
+async function skyAtRest(page: Page) {
+  let last = Number.NaN;
+  await expect
+    .poll(async () => {
+      const now = await skyScrollTop(page);
+      const still = now === last;
+      last = now;
+      return still;
+    }, { intervals: [100] })
+    .toBe(true);
+}
+
 test('Page Down, Space and the arrow keys scroll the Sky without clicking first', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/');
 
   for (const [key, back] of [['PageDown', 'PageUp'], ['Space', 'Shift+Space'], ['ArrowDown', 'ArrowUp']]) {
+    await skyAtRest(page);
     const before = await skyScrollTop(page);
     await page.keyboard.press(key);
     await expect.poll(() => skyScrollTop(page), { message: key }).toBeGreaterThan(before);
+    await skyAtRest(page);
     const after = await skyScrollTop(page);
     await page.keyboard.press(back);
     await expect.poll(() => skyScrollTop(page), { message: back }).toBeLessThan(after);
