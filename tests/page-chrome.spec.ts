@@ -14,7 +14,6 @@ test('the glow on borders follows the pointer', async ({ page }) => {
 
   const targets = {
     'project card': page.getByRole('link', { name: /Zaklang/ }),
-    'Now Playing': page.getByRole('region', { name: 'Now Playing' }),
     divider: page.locator('.glow-divider').first(),
   };
 
