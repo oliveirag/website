@@ -39,23 +39,31 @@ const thoughts = defineCollection({
 // time, like Thoughts, so the list is the only source.
 const videosLoader: Loader = {
   name: 'videos-loader',
-  load: async ({ store, parseData, config }) => {
-    store.clear();
+  load: async ({ store, parseData, config, watcher }) => {
     const file = resolve(fileURLToPath(config.root), process.env.VIDEOS_FILE ?? 'src/data/videos.json');
-    let list: unknown;
-    try {
-      list = JSON.parse(await readFile(file, 'utf8'));
-    } catch (error) {
-      throw new Error(`The videos list ${file} is not valid JSON: ${(error as Error).message}`);
-    }
-    if (!Array.isArray(list)) throw new Error(`The videos list ${file} must be a list: [ ... ].`);
-    for (const [index, entry] of list.entries()) {
-      // The YouTube ID names the entry. Without one, the schema below says what is missing.
-      const youtubeId = (entry as { youtubeId?: unknown } | null)?.youtubeId;
-      const id = typeof youtubeId === 'string' ? youtubeId : `entry ${index + 1}`;
-      if (store.has(id)) throw new Error(`The video ${id} is in the list twice.`);
-      store.set({ id, data: await parseData({ id, data: entry as Record<string, unknown> }) });
-    }
+    const sync = async () => {
+      store.clear();
+      let list: unknown;
+      try {
+        list = JSON.parse(await readFile(file, 'utf8'));
+      } catch (error) {
+        throw new Error(`The videos list ${file} is not valid JSON: ${(error as Error).message}`);
+      }
+      if (!Array.isArray(list)) throw new Error(`The videos list ${file} must be a list: [ ... ].`);
+      for (const [index, entry] of list.entries()) {
+        // The YouTube ID names the entry. Without one, the schema below says what is missing.
+        const youtubeId = (entry as { youtubeId?: unknown } | null)?.youtubeId;
+        const id = typeof youtubeId === 'string' ? youtubeId : `entry ${index + 1}`;
+        if (store.has(id)) throw new Error(`The video ${id} is in the list twice.`);
+        store.set({ id, data: await parseData({ id, data: entry as Record<string, unknown> }) });
+      }
+    };
+    await sync();
+    // In `npm run dev`, an edited list shows without restarting.
+    watcher?.add(file);
+    watcher?.on('change', (changed) => {
+      if (changed === file) sync().catch((error) => console.error(error));
+    });
   },
 };
 
