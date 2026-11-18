@@ -42,9 +42,9 @@
   // Draws into the Now Playing on the page showing now: pages change, and a reply can land after a change.
   function render(track: Track | null) {
     const line = document.getElementById('now-playing-line');
-    const text = document.getElementById('now-playing-track');
-    if (!line || !text) return;
-    text.textContent = track ? [track.title, track.artist].filter(Boolean).join(' - ') : '';
+    const trackText = document.getElementById('now-playing-track');
+    if (!line || !trackText) return;
+    trackText.textContent = track ? [track.title, track.artist].filter(Boolean).join(' - ') : '';
     line.classList.toggle('invisible', !track);
   }
 
