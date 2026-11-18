@@ -2,7 +2,7 @@
 //
 // It reports its state on <html data-sound>: "locked" until the visitor's first gesture, then "playing",
 // or "muted" whenever the muted preference is on (before or after a gesture). The state describes what the
-// engine is doing, not what can be heard: with no Ambience file yet, "playing" is quiet between Cues.
+// engine is doing, not what can be heard: with no Ambience file, "playing" is quiet between Cues.
 // It also reports the Ambience on <html data-ambience>: "playing" while sound is on, the tab is showing and no
 // video is playing on the page, "paused" otherwise. Cues carry on while a video plays.
 //

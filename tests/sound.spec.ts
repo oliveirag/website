@@ -142,7 +142,7 @@ test('no audio is requested before the first gesture', async ({ page }) => {
   expect(audioRequests).toEqual([]);
 });
 
-test('with no sound files, gestures, links, the theme toggle and a Chatbot send stay silent with no errors', async ({ page }) => {
+test('gestures, links, the theme toggle and a Chatbot send run the sound engine with no errors', async ({ page }) => {
   const problems: string[] = [];
   page.on('console', (message) => message.type() === 'error' && problems.push(message.text()));
   page.on('pageerror', (error) => problems.push(error.message));
