@@ -1,4 +1,4 @@
-import { test, expect, reply, type Page } from './fixtures';
+import { test, expect, reply, motionSettled, type Page } from './fixtures';
 import { rgbaFromHex } from './contrast';
 import { findText, textBelowAA } from './sky-text';
 
@@ -14,9 +14,7 @@ async function openHome(page: Page, theme: 'night' | 'day') {
   await expect(page.getByRole('region', { name: 'Now Playing' })).not.toContainText('Loading');
   await expect(page.getByRole('region', { name: 'Commits' })).not.toContainText('Loading');
   // Let entrance fades finish, so text is checked at the opacity it settles at.
-  await page.waitForFunction(() =>
-    document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
-  );
+  await motionSettled(page);
 }
 
 const commitsStates = {
