@@ -74,3 +74,13 @@ test('the live build has no Thoughts posts: its feed is empty and the test posts
     expect((await page.request.get(`/thoughts/${slug}/`)).status(), slug).toBe(404);
   }
 });
+
+test('the live build has no videos: no list, no player and none of the test videos', async ({ page }) => {
+  await page.goto('/videos');
+  await expect(page.getByText('no videos yet. coming soon.')).toBeVisible();
+  await expect(page.getByRole('main').getByRole('list')).toHaveCount(0);
+  await expect(page.getByRole('main').getByRole('button')).toHaveCount(0);
+  await expect(page.getByRole('main').locator('img, iframe')).toHaveCount(0);
+  const html = await (await page.request.get('/videos')).text();
+  for (const id of ['fixtureNew1', 'fixtureMid1', 'fixtureOld1']) expect(html, id).not.toContain(id);
+});
