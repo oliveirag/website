@@ -5,16 +5,21 @@ import { scenePalettes } from '../scripts/scene-palette';
 type GrassModule = typeof import('../designely/Grass');
 type Artboard = GrassModule['grassArtboard'];
 
+// A custom property set on :root in Field.astro.
+function fieldSetting(name: string) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 // The share of the viewport the grass fills comes from CSS (--field-share), so the band the page lays out
 // around and the horizon the scene draws always agree.
 function fieldShare() {
-  const share = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--field-share'));
+  const share = parseFloat(fieldSetting('--field-share'));
   return Number.isFinite(share) ? share : 0.3;
 }
 
 // Phones draw at the scene's lighter quality, also set in CSS (--field-quality) next to the share.
 function fieldQuality(): 'high' | 'fast' {
-  return getComputedStyle(document.documentElement).getPropertyValue('--field-quality').trim() === 'fast' ? 'fast' : 'high';
+  return fieldSetting('--field-quality') === 'fast' ? 'fast' : 'high';
 }
 
 // The scene's horizon setting that puts the grass line at the top of the Field band.
@@ -53,15 +58,23 @@ function afterPaint(run: () => void) {
   };
 }
 
+// Whether this browser can draw the scene at all. The test context is let go at once, so it never counts
+// against the browser's limit on live WebGL contexts.
+function hasWebGL2() {
+  const context = document.createElement('canvas').getContext('webgl2');
+  context?.getExtension('WEBGL_lose_context')?.loseContext();
+  return context !== null;
+}
+
 // The Grass scene behind the whole viewport: its sky fills the screen and its grass fills the Field band.
-// The scene's code loads only after the page has first painted. Until it draws, and for good where it can't
-// (no WebGL2), the Field's CSS sky shows; without WebGL2 a still picture of the grass fills the band.
+// The scene's code loads only after the page has first painted, and only where WebGL2 can draw it. Until it
+// draws the Field's CSS sky shows; without WebGL2 a still picture of the grass fills the band instead.
 // A theme change sends the new palette to the running scene, which updates in place.
 // The scene holds still while the band is off screen (under the Intro, the Field waits below the screen).
 // The scene itself also holds still in a hidden tab and under reduced motion.
 export default function FieldScene() {
   const [theme, setTheme] = useState(() => read('theme'));
-  const [grass, setGrass] = useState<GrassModule | null>(null);
+  const [grassModule, setGrassModule] = useState<GrassModule | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [horizon, setHorizon] = useState(() => 1 - fieldShare());
   const [quality, setQuality] = useState(fieldQuality);
@@ -72,12 +85,14 @@ export default function FieldScene() {
   useEffect(() => {
     let cancelled = false;
     const cancel = afterPaint(() => {
+      // Without WebGL2 the scene's code would download only to find it can't start.
+      if (!hasWebGL2()) return setUnavailable(true);
       import('../designely/Grass').then(
         (loaded) => {
           if (cancelled) return;
           // The stage will fill the window, so the horizon is right from the scene's first frame.
           setHorizon(currentHorizon(loaded.grassArtboard));
-          setGrass(loaded);
+          setGrassModule(loaded);
         },
         () => !cancelled && setUnavailable(true),
       );
@@ -90,13 +105,13 @@ export default function FieldScene() {
 
   useEffect(() => {
     const update = () => {
-      if (grass) setHorizon(currentHorizon(grass.grassArtboard));
+      if (grassModule) setHorizon(currentHorizon(grassModule.grassArtboard));
       setQuality(fieldQuality());
     };
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
-  }, [grass]);
+  }, [grassModule]);
 
   useEffect(() => {
     const band = document.getElementById('field');
@@ -111,7 +126,7 @@ export default function FieldScene() {
   }, []);
 
   const palette = scenePalettes[theme].field;
-  const Grass = grass?.default;
+  const Grass = grassModule?.default;
 
   // data-palette and data-quality say which palette and quality the scene was last given, for anyone checking
   // from outside.

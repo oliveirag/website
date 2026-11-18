@@ -25,9 +25,9 @@ SOFTWARE.
 The files in src/designely/ are excluded from this licence. They are exports from
 Designely Studio, Copyright (c) 2026 DESIGNELY LTD, licensed only to play the
 export (see app.designely.studio/licence and src/designely/README.md). They keep
-their notices, and designely-runtime.js is never edited. The still pictures of the
-grass in public/images/field/ are renders of that Grass scene and are excluded too
-(scripts/render-field-stills.mjs makes them).
+their notices, and designely-runtime.js is never edited. The folder also holds the
+still pictures of the grass (grass-night.webp, grass-day.webp), renders of the Grass
+scene made by scripts/render-field-stills.mjs.
 
 public/fonts/instrument-serif-latin.woff2 is Instrument Serif, Copyright 2017 The
 Instrument Serif Project Authors, under the SIL Open Font License 1.1 (see

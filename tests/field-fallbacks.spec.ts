@@ -96,6 +96,21 @@ test('without WebGL2 the Field is a still picture of the grass under the gradien
   }
 });
 
+// The scene's code is the biggest script on the site and useless without WebGL2, so the browser never fetches
+// it then. The runtime's copyright notice marks the script that carries it.
+test('without WebGL2 the browser never downloads the scene and shows the still from the start', async ({ page }) => {
+  const scripts: Promise<string>[] = [];
+  page.on('response', (response) => {
+    if (new URL(response.url()).pathname.startsWith('/_astro/') && response.url().endsWith('.js')) scripts.push(response.text());
+  });
+  await page.goto('/top-5');
+  await expect.poll(() => pictureInField(page)).not.toBeNull();
+  await page.waitForLoadState('networkidle');
+  const bodies = await Promise.all(scripts);
+  expect(bodies.length).toBeGreaterThan(0);
+  expect(bodies.some((body) => body.includes('DESIGNELY LTD'))).toBe(false);
+});
+
 // Headless Chromium draws WebGL in software, at a cost per frame that grows with the pixels, so the scene
 // tests run on a small screen (a phone's quality, by its height). What they prove doesn't depend on the size.
 const SCENE_VIEWPORT = { width: 320, height: 240 };
