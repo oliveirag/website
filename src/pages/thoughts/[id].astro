@@ -27,14 +27,3 @@ const day = thoughtDay(post.data.date);
   </article>
 </Layout>
 
-<style is:global>
-  /* Code blocks: the background is the prose surface, and each token takes its Day or Night colour. */
-  .prose-thoughts .astro-code,
-  .prose-thoughts .astro-code span {
-    color: var(--shiki-light);
-  }
-  [data-theme='night'] .prose-thoughts .astro-code,
-  [data-theme='night'] .prose-thoughts .astro-code span {
-    color: var(--shiki-dark);
-  }
-</style>

@@ -82,5 +82,13 @@ export const test = base.extend<{ scene: boolean; intro: boolean }>({
   },
 });
 
+// Colours ease when the theme changes, and Home's entrance fades run on load. This waits until every animation
+// that will end has ended, so a test reads the colours and opacity the page settles on.
+export async function motionSettled(page: Page) {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
+  );
+}
+
 export { expect } from '@playwright/test';
 export type { Page, Locator } from '@playwright/test';

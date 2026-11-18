@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './fixtures';
+import { test, expect, motionSettled, type Page } from './fixtures';
 import { contentOverField } from './field';
 import { textBelowAA } from './sky-text';
 
@@ -126,18 +126,16 @@ test('every page points feed readers at the feed, and Thoughts links to it', asy
   await expect(page.getByRole('main').getByRole('link', { name: 'rss' })).toHaveAttribute('href', '/thoughts/rss.xml');
 });
 
-const pages = { list: '/thoughts', 'a long post': newestFirst[0].href };
+const thoughtsPages = { list: '/thoughts', 'a long post': newestFirst[0].href };
 
 for (const theme of ['night', 'day'] as const) {
-  for (const [name, path] of Object.entries(pages)) {
+  for (const [name, path] of Object.entries(thoughtsPages)) {
     test(`in ${theme}, all text on ${name} reaches 4.5:1 from the top of the sky to the horizon`, async ({ page }) => {
       await page.goto(path);
       if (theme === 'day') await page.getByRole('button', { name: /^theme:/ }).click();
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       // Colours ease to the new theme, so they are read once every transition has finished.
-      await page.waitForFunction(() =>
-        document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
-      );
+      await motionSettled(page);
       const { found, failures, rows } = await textBelowAA(page);
       expect(found.length).toBeGreaterThan(name === 'list' ? 6 : 15);
       if (process.env.PRINT_CONTRAST) console.log(`\n${theme}, ${name}\n${rows.join('\n')}`);
@@ -149,7 +147,7 @@ for (const theme of ['night', 'day'] as const) {
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }, { width: 667, height: 375 }]) {
   test(`the list and a long post scroll in the Sky and never touch the grass (${viewport.width}x${viewport.height})`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    for (const path of Object.values(pages)) {
+    for (const path of Object.values(thoughtsPages)) {
       await page.goto(path);
       const sky = page.getByRole('main');
       if (path !== '/thoughts') expect(await sky.evaluate((el) => el.scrollHeight > el.clientHeight), 'the long post scrolls').toBe(true);
@@ -161,27 +159,31 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
-test('a code block in a post follows Night and Day like the rest of the page', async ({ page }) => {
+// Body text stays achromatic (ADR-0001), and code is body text: it is grey on a surface, never syntax colours,
+// and it follows Night and Day like the rest of the page.
+test('code in a post is grey on its own surface and follows Night and Day', async ({ page }) => {
   await page.goto(newestFirst[0].href);
-  const code = page.getByRole('main').locator('pre');
-  const looks = () =>
-    code.evaluate((pre) => {
-      const root = getComputedStyle(document.documentElement);
-      const tokens = [...pre.querySelectorAll('span')].map((span) => getComputedStyle(span).color);
-      const surface = document.createElement('div');
-      surface.style.background = root.getPropertyValue('--surface-raised');
-      document.body.append(surface);
-      const expected = getComputedStyle(surface).backgroundColor;
-      surface.remove();
-      return { background: getComputedStyle(pre).backgroundColor, expected, tokens: tokens.join() };
+  const codeColours = () =>
+    page.getByRole('main').locator('pre').evaluate((pre) => {
+      const rgb = (el: Element, key: 'color' | 'backgroundColor') => getComputedStyle(el)[key].match(/\d+/g)!.slice(0, 3).map(Number);
+      return {
+        text: [pre, ...pre.querySelectorAll('*')].map((el) => rgb(el, 'color')),
+        background: rgb(pre, 'backgroundColor'),
+        page: rgb(document.getElementById('sky')!, 'color'),
+      };
     });
-  const night = await looks();
-  expect(night.background).toBe(night.expected);
+  const grey = ([r, g, b]: number[]) => r === g && g === b;
+
+  const night = await codeColours();
   await page.getByRole('button', { name: /^theme:/ }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'day');
-  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
-  const day = await looks();
-  expect(day.background).toBe(day.expected);
-  expect(day.background).not.toBe(night.background);
-  expect(day.tokens).not.toBe(night.tokens);
+  await motionSettled(page);
+  const day = await codeColours();
+
+  for (const [theme, colours] of Object.entries({ night, day })) {
+    expect(colours.text.filter((c) => !grey(c)), `${theme}: coloured code`).toEqual([]);
+    expect(grey(colours.background), `${theme}: code background`).toBe(true);
+  }
+  expect(day.background).not.toEqual(night.background);
+  expect(day.text[0]).not.toEqual(night.text[0]);
 });

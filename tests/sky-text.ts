@@ -6,7 +6,7 @@ import { type Rgba, rgbaFromHex, contrastRatio, compositeOver, formatRatio } fro
 // that surface's colour instead. Contrast can't be observed without reading canvas pixels, which the tests
 // never do, so this reads the computed colours a visitor sees and the sky's two end colours from the custom
 // properties the Field paints with. A throwaway probe confirmed the WebGL scene draws exactly those colours.
-export const AA = 4.5;
+const AA = 4.5;
 
 export type Found = {
   text: string;
@@ -80,7 +80,7 @@ export async function findText(page: Page): Promise<Found[]> {
   });
 }
 
-export async function skyEnds(page: Page) {
+async function skyEnds(page: Page) {
   const [top, horizon] = await page.evaluate(() => {
     const root = getComputedStyle(document.documentElement);
     return [root.getPropertyValue('--sky-top'), root.getPropertyValue('--sky-horizon')];
