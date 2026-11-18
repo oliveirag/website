@@ -61,3 +61,16 @@ for (const [route, heading, emptyState] of [
     await expect(page.getByRole('main').getByRole('link')).toHaveCount(0);
   });
 }
+
+test('the live build has no Thoughts posts: its feed is empty and the test posts are not there', async ({ page }) => {
+  const feed = await page.request.get('/thoughts/rss.xml');
+  expect(feed.status()).toBe(200);
+  const items = await page.evaluate(
+    (xml) => new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('channel > item').length,
+    await feed.text(),
+  );
+  expect(items).toBe(0);
+  for (const slug of ['on-the-ridge', 'a-short-one', 'first-light']) {
+    expect((await page.request.get(`/thoughts/${slug}/`)).status(), slug).toBe(404);
+  }
+});

@@ -33,6 +33,14 @@ function keepDesignelyNotice() {
 export default defineConfig({
   integrations: [tailwind(), react(), mdx()],
   site: 'https://notgui.com',
+  // Code in Thoughts posts carries both a light and a dark colour per token, and the post page picks one from
+  // the theme, so code follows Night and Day like everything else.
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light-default', dark: 'github-dark-default' },
+      defaultColor: false,
+    },
+  },
   vite: {
     plugins: [keepDesignelyNotice()],
   },
