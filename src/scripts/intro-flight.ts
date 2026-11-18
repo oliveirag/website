@@ -6,19 +6,11 @@
 // fades from the Intro's ink to the heading's. When it lands, the layer empties and the heading shows in the
 // same spot. Phones draw the name on two lines and set the heading on one, which is why each word travels alone.
 //
-// Bloom Type reports where its lettering sits on each canvas (data-text-box, added to the component for this).
+import { readTextBox } from './bloom-text-box';
 
 export interface Flight {
   /** Puts every word in its place at once and shows the heading. Safe to call more than once. */
   land(): void;
-}
-
-type TextBox = { x: number; baseline: number; fontSize: number };
-
-function textBox(canvas: HTMLCanvasElement): TextBox | null {
-  const [x, baseline, , fontSize] = (canvas.dataset.textBox ?? '').split(' ').map(Number);
-  if (![x, baseline, fontSize].every((n) => Number.isFinite(n)) || !fontSize) return null;
-  return { x: x!, baseline: baseline!, fontSize: fontSize! };
 }
 
 // Where each word of an element's text sits on screen, in order.
@@ -44,15 +36,18 @@ function span(className: string, text?: string) {
   return el;
 }
 
-// Starts the flight, or returns null when there is no drawn name to start from (the drawing hadn't loaded) or
-// the drawing and the heading don't hold the same words.
+// Starts the flight, or returns null when there is no drawn name to start from (the drawing hadn't loaded, or
+// a phone's lines aren't placed yet) or the drawing and the heading don't hold the same words.
 export function flyNameHome(stage: HTMLElement, layer: HTMLElement, heading: HTMLElement, options: { duration: number; easing: string; ink: string }): Flight | null {
   const canvases = [...stage.querySelectorAll<HTMLCanvasElement>('canvas[data-text-box]')].filter((canvas) => canvas.dataset.ready === '1');
-  const lines = canvases.map((canvas) => ({
-    canvas,
-    box: textBox(canvas),
-    words: (canvas.closest<HTMLElement>('[data-intro-line]')?.dataset.introLine ?? '').split(/\s+/).filter(Boolean),
-  }));
+  const lines = canvases.map((canvas) => {
+    const line = canvas.closest<HTMLElement>('[data-intro-line]');
+    return {
+      canvas,
+      box: line && getComputedStyle(line).opacity !== '0' ? readTextBox(canvas) : null,
+      words: (line?.dataset.introLine ?? '').split(/\s+/).filter(Boolean),
+    };
+  });
   const targets = wordRects(heading);
   const wordCount = lines.reduce((sum, line) => sum + line.words.length, 0);
   if (!lines.length || lines.some((line) => !line.box || !line.words.length) || wordCount !== targets.length) return null;

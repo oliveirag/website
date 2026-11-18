@@ -117,10 +117,10 @@ export function startIntro(intro: HTMLElement): () => void {
   let leaveTimer: ReturnType<typeof setTimeout> | undefined;
   const bloom = stage ? loadBloom(stage, () => ended) : { release() {}, unload() {} };
 
-  // A scroll, a press or a key during the move puts the name in its place at once, since the heading may be
-  // about to move under it. The fades and the Field carry on; none of them is in the way of input.
+  // A scroll, a press, a key or a resize during the move puts the name in its place at once, since the heading
+  // may be about to move under it. The fades and the Field carry on; none of them is in the way of input.
   const land = () => flight?.land();
-  const sky = () => document.getElementById('sky');
+  const moving = new AbortController();
 
   const finish = () => {
     teardown();
@@ -143,16 +143,16 @@ export function startIntro(intro: HTMLElement): () => void {
         ink: getComputedStyle(intro).color,
       });
       bloom.release();
-      drift = stage.animate([{ transform: 'none' }, { transform: 'translateY(-6%) scale(1.04)' }], {
+      // The flowers rise away as they wither and fade with the cover.
+      drift = stage.animate([{ transform: 'none' }, { transform: 'translateY(-12%) scale(1.06)' }], {
         duration: leaveMs,
         easing: travelEasing(),
         fill: 'forwards',
       });
     }
-    window.addEventListener('wheel', land, { capture: true, passive: true });
-    window.addEventListener('pointerdown', land, true);
-    window.addEventListener('keydown', land, true);
-    sky()?.addEventListener('scroll', land, { passive: true });
+    const listen = { capture: true, passive: true, signal: moving.signal };
+    for (const type of ['wheel', 'pointerdown', 'keydown', 'resize']) window.addEventListener(type, land, listen);
+    document.getElementById('sky')?.addEventListener('scroll', land, listen);
     leaveTimer = setTimeout(finish, leaveMs);
   };
 
@@ -189,10 +189,7 @@ export function startIntro(intro: HTMLElement): () => void {
     intro.removeEventListener('pointerdown', onPointerDown);
     intro.removeEventListener('mousedown', onMouseDown);
     window.removeEventListener('keydown', onKeyDown, true);
-    window.removeEventListener('wheel', land, true);
-    window.removeEventListener('pointerdown', land, true);
-    window.removeEventListener('keydown', land, true);
-    sky()?.removeEventListener('scroll', land);
+    moving.abort();
     skip?.removeEventListener('click', onSkip);
     bloom.unload();
   }

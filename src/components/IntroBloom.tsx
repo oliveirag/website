@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import BloomType from '../designely/BloomType';
+import { readTextBox } from '../scripts/bloom-text-box';
 import { read, subscribe } from '../scripts/preferences';
 import { scenePalettes } from '../scripts/scene-palette';
 
 const NAME = ['guilherme', 'oliveira'];
-// Bloom Type's flower mix for the Intro. 'Wildflowers' is the alternative on offer; Roses stays until I choose.
+// Bloom Type's flower mix for the Intro. 'Wildflowers' is the other mix being considered.
 const FLOWER_MIX = 'Roses';
 // Below the tablet breakpoint the name is stacked on two lines, so the letters and flowers are large enough.
 const TWO_LINES = '(max-width: 639px)';
@@ -19,10 +20,10 @@ const MAX_LETTER_SHARE = 0.16;
 type Shares = { baseline: number; width: number; fontSize: number };
 
 function shares(canvas: HTMLCanvasElement): Shares | null {
-  const [, baseline, width, fontSize] = (canvas.dataset.textBox ?? '').split(' ').map(Number);
+  const box = readTextBox(canvas);
   const canvasWidth = canvas.getBoundingClientRect().width;
-  if (!canvasWidth || !fontSize || !width || !Number.isFinite(baseline)) return null;
-  return { baseline: baseline! / canvasWidth, width: width / canvasWidth, fontSize: fontSize / canvasWidth };
+  if (!box || !canvasWidth) return null;
+  return { baseline: box.baseline / canvasWidth, width: box.width / canvasWidth, fontSize: box.fontSize / canvasWidth };
 }
 
 // Places two drawn lines: both words at one letter size, as large as fits, stacked and centred together.
