@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { thoughtsNewestFirst, thoughtPath, thoughtDay } from '../../scripts/thoughts';
+import { thoughtsNewestFirst, thoughtPath } from '../../scripts/thoughts';
+import { dayOf } from '../../scripts/dated';
 
 const posts = await thoughtsNewestFirst();
 ---
@@ -17,7 +18,7 @@ const posts = await thoughtsNewestFirst();
       <ol aria-label="posts" class="mt-6 flex flex-col gap-8 max-w-2xl">
         {posts.map((post) => (
           <li class="flex flex-col gap-1">
-            <time datetime={thoughtDay(post.data.date)} class="text-sm text-secondary">{thoughtDay(post.data.date)}</time>
+            <time datetime={dayOf(post.data.date)} class="text-sm text-secondary">{dayOf(post.data.date)}</time>
             <a href={thoughtPath(post)} class="link w-fit text-lg font-medium">{post.data.title}</a>
             {post.data.summary && <p class="text-secondary">{post.data.summary}</p>}
           </li>
