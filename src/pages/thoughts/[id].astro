@@ -3,7 +3,8 @@
 // itself reads in the mono body type with the "thoughts" prose styles from tailwind.config.mjs.
 import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { thoughtsNewestFirst, thoughtDay, type Thought } from '../../scripts/thoughts';
+import { thoughtsNewestFirst, type Thought } from '../../scripts/thoughts';
+import { dayOf } from '../../scripts/dated';
 
 export async function getStaticPaths() {
   const posts = await thoughtsNewestFirst();
@@ -12,7 +13,7 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props as { post: Thought };
 const { Content } = await render(post);
-const day = thoughtDay(post.data.date);
+const day = dayOf(post.data.date);
 ---
 
 <Layout title={`${post.data.title} | gui's website`} description={post.data.summary}>
