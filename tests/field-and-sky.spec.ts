@@ -27,7 +27,7 @@ test('the Field is pinned to the bottom of the viewport and takes about 30% of i
 // and again after, at every scroll position.
 const ROUTES = ['/', '/chatbot', '/top-5', '/thoughts', '/videos'];
 
-for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE })) {
+for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE, 'phone on its side': { width: 667, height: 375 } })) {
   test(`no content overlaps the Field at any scroll position on any page (${size})`, async ({ page }) => {
     await page.setViewportSize(viewport);
     for (const route of ROUTES) {
@@ -139,6 +139,9 @@ test('keys still reach the control that has focus', async ({ page }) => {
 test('Space types in the Chatbot message box', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/chatbot');
+  // The message box is in the page before the Chatbot starts, and typing that early is lost when it does.
+  // Its greeting shows once it has started.
+  await expect(page.getByText(/^Hi, i'm google gemini/)).toBeVisible();
   const message = page.getByRole('textbox', { name: 'Message' });
   await message.fill('hi');
   await message.press('Space');
@@ -292,8 +295,10 @@ test('the scripts the site serves still carry the Designely runtime copyright no
   await page.goto('/');
   await expect(field(page).locator('[data-palette]')).toBeAttached();
 
-  const bodies = await Promise.all(scripts);
-  expect(bodies.some((body) => body.includes('Copyright (c) 2026 DESIGNELY LTD. Licensed only to play this export'))).toBe(true);
+  // The scene's code loads once the page has painted and the browser is idle, so keep reading what arrives.
+  await expect
+    .poll(async () => (await Promise.all(scripts)).some((body) => body.includes('Copyright (c) 2026 DESIGNELY LTD. Licensed only to play this export')))
+    .toBe(true);
 });
 
 for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE })) {
