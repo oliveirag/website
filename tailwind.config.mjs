@@ -60,6 +60,33 @@ export default {
 		  fast: '150ms',
 		  base: '200ms',
 		},
+		// `prose-thoughts`: a Thoughts post's colours from the design tokens, so the text follows Night and Day
+		// and reaches 4.5:1 on the sky. Tertiary grey is left out: in Day it can't reach that on the sky.
+		typography: {
+		  thoughts: {
+			css: {
+			  '--tw-prose-body': 'var(--text-primary)',
+			  '--tw-prose-headings': 'var(--text-primary)',
+			  '--tw-prose-lead': 'var(--text-secondary)',
+			  '--tw-prose-links': 'var(--text-action)',
+			  '--tw-prose-bold': 'var(--text-primary)',
+			  '--tw-prose-counters': 'var(--text-secondary)',
+			  '--tw-prose-bullets': 'var(--text-secondary)',
+			  '--tw-prose-hr': 'var(--border-strong)',
+			  '--tw-prose-quotes': 'var(--text-secondary)',
+			  '--tw-prose-quote-borders': 'var(--border-strong)',
+			  '--tw-prose-captions': 'var(--text-secondary)',
+			  '--tw-prose-kbd': 'var(--text-primary)',
+			  '--tw-prose-code': 'var(--text-primary)',
+			  '--tw-prose-pre-code': 'var(--text-primary)',
+			  '--tw-prose-pre-bg': 'var(--surface-raised)',
+			  '--tw-prose-th-borders': 'var(--border-strong)',
+			  '--tw-prose-td-borders': 'var(--border-default)',
+			  a: { textUnderlineOffset: '3px' },
+			  pre: { border: '1px solid var(--border-default)' },
+			},
+		  },
+		},
 	  },
 	},
 	plugins: [

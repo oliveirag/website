@@ -1,10 +1,28 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { thoughtsNewestFirst, thoughtPath, thoughtDay } from '../../scripts/thoughts';
+
+const posts = await thoughtsNewestFirst();
 ---
 
 <Layout title="thoughts | gui's website">
   <div class="max-w-5xl w-full p-4 sm:p-8 flex flex-col gap-2">
-    <h1 class="text-lg font-bold">thoughts</h1>
-    <p class="text-secondary">nothing written yet. check back soon.</p>
+    <div class="flex items-baseline justify-between gap-4 max-w-2xl">
+      <h1>thoughts</h1>
+      {posts.length > 0 && <a href="/thoughts/rss.xml" class="link text-sm" data-astro-reload>rss</a>}
+    </div>
+    {posts.length === 0 ? (
+      <p class="text-secondary">nothing written yet. check back soon.</p>
+    ) : (
+      <ol aria-label="posts" class="mt-6 flex flex-col gap-8 max-w-2xl">
+        {posts.map((post) => (
+          <li class="flex flex-col gap-1">
+            <time datetime={thoughtDay(post.data.date)} class="text-sm text-secondary">{thoughtDay(post.data.date)}</time>
+            <a href={thoughtPath(post)} class="link w-fit text-lg font-medium">{post.data.title}</a>
+            {post.data.summary && <p class="text-secondary">{post.data.summary}</p>}
+          </li>
+        ))}
+      </ol>
+    )}
   </div>
 </Layout>
