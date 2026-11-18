@@ -1,0 +1,29 @@
+---
+// One page per Thoughts post. The title is the page's h1, which the frame sets in Instrument Serif; the post
+// itself reads in the mono body type with the "thoughts" prose styles from tailwind.config.mjs.
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { thoughtsNewestFirst, thoughtDay, type Thought } from '../../scripts/thoughts';
+
+export async function getStaticPaths() {
+  const posts = await thoughtsNewestFirst();
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Thought };
+const { Content } = await render(post);
+const day = thoughtDay(post.data.date);
+---
+
+<Layout title={`${post.data.title} | gui's website`} description={post.data.summary}>
+  <article class="max-w-5xl w-full p-4 sm:p-8">
+    <header class="flex flex-col gap-2 mb-8">
+      <time datetime={day} class="text-sm text-secondary">{day}</time>
+      <h1>{post.data.title}</h1>
+    </header>
+    <div class="prose prose-thoughts">
+      <Content />
+    </div>
+  </article>
+</Layout>
+
