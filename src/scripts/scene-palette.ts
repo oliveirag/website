@@ -73,5 +73,5 @@ function perTheme(declarations: (palette: ScenePalette) => string) {
 // The sky as CSS custom properties per theme, so the page can paint it before (or without) the scene.
 export const skyCustomProperties = perTheme(({ field }) => `--sky-top: ${field.skyTop}; --sky-horizon: ${field.horizonColour};`);
 
-// The Intro's text colour per theme, so its hint and skip control are right from first paint.
-export const introCustomProperties = perTheme(({ intro }) => `--intro-ink: ${intro.name};`);
+// The Intro's text colour and blend per theme, so its hint, skip control and drawing are right from first paint.
+export const introCustomProperties = perTheme(({ intro }) => `--intro-ink: ${intro.name}; --intro-blend: ${intro.blend};`);
