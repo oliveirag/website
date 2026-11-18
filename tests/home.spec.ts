@@ -36,14 +36,20 @@ test('About keeps the bio, contact, tech stack, photo, resume and Now Playing', 
   await expect(page.getByRole('region', { name: 'Now Playing' })).toContainText('Pink + White');
 });
 
-test('"about this site" says what the site is built with and no longer links to the source code', async ({ page }) => {
+test('"about this site" says what the site is built with, ends with the Classic site link and no longer links to the source code', async ({ page }) => {
   await page.goto('/');
 
   const aboutSite = page.locator('#about-site');
   await expect(aboutSite).toContainText('about this site');
   const words = await aboutSite.evaluate((node) => (node as HTMLElement).innerText.replace(/\s+/g, ' ').trim());
-  expect(words).toBe('about this site built with astro, react, and tailwind.');
-  await expect(aboutSite.getByRole('link')).toHaveCount(0);
+  expect(words).toBe('about this site built with astro, react, and tailwind. click here for old site');
+
+  const classic = aboutSite.getByRole('link');
+  await expect(classic).toHaveCount(1);
+  await expect(classic).toHaveAccessibleName('click here for old site');
+  await expect(classic).toHaveAttribute('href', 'https://classic.notgui.com');
+  await expect(aboutSite.locator(':scope > :last-child')).toHaveText('click here for old site');
+
   await expect(page.locator('a[href*="github.com/oliveirag/Website" i]')).toHaveCount(0);
   await expect(page.getByText(/source code/)).toHaveCount(0);
 });
