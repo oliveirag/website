@@ -33,6 +33,11 @@ function keepDesignelyNotice() {
 export default defineConfig({
   integrations: [tailwind(), react(), mdx()],
   site: 'https://notgui.com',
+  // Code in Thoughts posts is body text, which stays achromatic (ADR-0001), so it gets no syntax colours. It
+  // takes the post's token colours instead and follows Night and Day with the rest of the page.
+  markdown: {
+    syntaxHighlight: false,
+  },
   vite: {
     plugins: [keepDesignelyNotice()],
   },

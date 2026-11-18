@@ -30,3 +30,6 @@ pnpm-debug.log*
 # playwright
 test-results/
 playwright-report/
+
+# the build with the fixture Thoughts posts, for the tests only
+dist-fixtures/

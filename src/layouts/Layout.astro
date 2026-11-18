@@ -12,9 +12,10 @@ import { themeBeforePaintScript, mutedBeforePaintScript, introBeforePaintScript,
 import { oldLinksBeforePaintScript } from '../scripts/old-links';
 interface Props {
   title: string;
+  description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description = 'peep the website' } = Astro.props;
 import '../styles/scrollbar.css';
 import '../styles/tokens.css';
 import '../styles/type.css';
@@ -26,13 +27,14 @@ import '../styles/type.css';
     <script is:inline set:html={oldLinksBeforePaintScript} />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="description" content="peep the website">
+    <meta name="description" content={description}>
     <title>{title}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- The serif for my name and page titles: preloaded so the Home heading shows in it from the start. -->
     <link rel="preload" href="/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
     <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
+    <link rel="alternate" type="application/rss+xml" title="thoughts | gui's website" href="/thoughts/rss.xml">
     <script is:inline set:html={themeBeforePaintScript} />
     <script is:inline set:html={mutedBeforePaintScript} />
     <script is:inline set:html={introBeforePaintScript} />
