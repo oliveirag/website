@@ -250,6 +250,22 @@ test.describe('with the scene running', () => {
     expect(same.canvases).toBeLessThanOrEqual(1);
   });
 
+  // The scene's code only downloads where WebGL2 can draw it, so this runs with the scene.
+  test('the scripts the site serves still carry the Designely runtime copyright notice', async ({ page }) => {
+    const scripts: Promise<string>[] = [];
+    page.on('response', (response) => {
+      if (new URL(response.url()).pathname.startsWith('/_astro/') && response.url().endsWith('.js')) scripts.push(response.text());
+    });
+    await page.setViewportSize(SCENE_VIEWPORT);
+    await page.goto('/');
+    await expect(field(page).locator('[data-palette]')).toBeAttached();
+
+    // The scene's code loads once the page has painted and the browser is idle, so keep reading what arrives.
+    await expect
+      .poll(async () => (await Promise.all(scripts)).some((body) => body.includes('Copyright (c) 2026 DESIGNELY LTD. Licensed only to play this export')))
+      .toBe(true);
+  });
+
   test('moving between pages keeps the same scene running, without restarting it', async ({ page }) => {
     await page.setViewportSize(SCENE_VIEWPORT);
     await page.goto('/');
@@ -287,19 +303,6 @@ test.describe('with the scene running', () => {
   });
 });
 
-test('the scripts the site serves still carry the Designely runtime copyright notice', async ({ page }) => {
-  const scripts: Promise<string>[] = [];
-  page.on('response', (response) => {
-    if (new URL(response.url()).pathname.startsWith('/_astro/') && response.url().endsWith('.js')) scripts.push(response.text());
-  });
-  await page.goto('/');
-  await expect(field(page).locator('[data-palette]')).toBeAttached();
-
-  // The scene's code loads once the page has painted and the browser is idle, so keep reading what arrives.
-  await expect
-    .poll(async () => (await Promise.all(scripts)).some((body) => body.includes('Copyright (c) 2026 DESIGNELY LTD. Licensed only to play this export')))
-    .toBe(true);
-});
 
 for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE })) {
   test(`everything on Home can be scrolled to and clicked (${size})`, async ({ page }) => {
