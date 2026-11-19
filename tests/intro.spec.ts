@@ -125,17 +125,17 @@ for (const route of ['/top-5', '/chatbot', '/thoughts', '/videos']) {
   });
 }
 
-test('"projects" from another page goes straight to Projects, with no Intro', async ({ page }) => {
+test('"home" from another page goes straight to Home, with no Intro', async ({ page }) => {
   await page.goto('/top-5');
-  await page.getByRole('link', { name: 'projects' }).click();
-  await expect(page).toHaveURL(/\/#projects$/);
-  await expect(page.locator('#projects')).toBeInViewport();
+  await page.getByRole('link', { name: 'home', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(homeHeading(page)).toBeInViewport();
   await expect(intro(page)).toBeHidden();
 });
 
-test('a direct link to Projects on Home shows no Intro', async ({ page }) => {
-  await page.goto('/#projects');
-  await expect(page.locator('#projects')).toBeInViewport();
+test('a direct link to a spot on Home shows no Intro', async ({ page }) => {
+  await page.goto('/#contact');
+  await expect(page.locator('#contact')).toBeInViewport();
   await expect(intro(page)).toBeHidden();
 });
 
