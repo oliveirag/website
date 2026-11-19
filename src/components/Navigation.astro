@@ -127,7 +127,7 @@ const isCurrent = (page: string) => (page === '/' ? path === '/' : path === page
       top: calc(100% + 4px);
       right: 0;
       min-width: 12rem;
-      max-height: calc(100vh - var(--nav-band) - var(--field-height) - var(--sky-gap));
+      max-height: var(--sky-height);
       overflow-y: auto;
       flex-direction: column;
       padding: 6px;

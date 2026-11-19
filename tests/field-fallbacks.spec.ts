@@ -11,16 +11,16 @@ const field = (page: Page) => page.locator('#field');
 const sky = (page: Page) => page.getByRole('main');
 
 for (const [size, viewport] of Object.entries(PHONES)) {
-  test(`on a ${size} the Field takes about 22% of the screen and the Sky and its controls stop above it`, async ({ page }) => {
+  test(`on a ${size} the Field takes 20% of the screen, as on desktop, and the Sky and its controls stop above it`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/top-5');
 
     const band = (await field(page).boundingBox())!;
     expect(band.y + band.height).toBeCloseTo(viewport.height, 0);
-    expect(band.height / viewport.height).toBeGreaterThan(0.2);
-    expect(band.height / viewport.height).toBeLessThan(0.24);
+    expect(band.height / viewport.height).toBeGreaterThan(0.19);
+    expect(band.height / viewport.height).toBeLessThan(0.21);
 
-    // The Sky's clip line follows the shorter Field, and so do the sound control and the scroll hint.
+    // The Sky's clip line follows the Field, and so do the sound control and the scroll hint.
     const skyBox = (await sky(page).boundingBox())!;
     expect(skyBox.y + skyBox.height).toBeLessThanOrEqual(band.y);
     expect(band.y - (skyBox.y + skyBox.height)).toBeLessThan(24);

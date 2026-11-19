@@ -12,15 +12,15 @@ async function scrollSkyTo(page: Page, fraction: number) {
   await sky(page).evaluate((el, f) => el.scrollTo({ top: (el.scrollHeight - el.clientHeight) * f, behavior: 'instant' }), fraction);
 }
 
-test('the Field is pinned to the bottom of the viewport and takes about 30% of it on desktop', async ({ page }) => {
+test('the Field is pinned to the bottom of the viewport and takes 20% of it on desktop', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/');
 
   const box = (await field(page).boundingBox())!;
   expect(box.y + box.height).toBeCloseTo(DESKTOP.height, 0);
   expect(box.width).toBe(DESKTOP.width);
-  expect(box.height / DESKTOP.height).toBeGreaterThan(0.27);
-  expect(box.height / DESKTOP.height).toBeLessThan(0.33);
+  expect(box.height / DESKTOP.height).toBeGreaterThan(0.19);
+  expect(box.height / DESKTOP.height).toBeLessThan(0.21);
 });
 
 // Every page in the site frame. Each is checked before its data or Chatbot reply could change its height
