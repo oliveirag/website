@@ -58,6 +58,8 @@ import '../styles/type.css';
       <slot />
     </Sky>
     <SoundControl />
+    <!-- A page's own fixed controls, after the shared ones in the tab order. Home puts Replay Intro here. -->
+    <slot name="controls" />
     <SpeedInsights />
     <script>
       import { followTheme } from '../scripts/theme';
