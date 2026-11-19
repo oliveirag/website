@@ -21,14 +21,14 @@ test.describe('Commits', () => {
     await stubApis(page, { commits: reply.json({ year: 2026, totalCommits: 0, repositories: [] }) });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText('No contribution data found.');
+    await expect(commitsRegion(page)).toContainText('No contribution data found');
   });
 
   test('shows a clear message when the API fails', async ({ page }) => {
     await stubApis(page, { commits: reply.serverError() });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again.");
+    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again");
     await expect(commitsRegion(page)).not.toContainText('Loading');
   });
 
@@ -36,7 +36,7 @@ test.describe('Commits', () => {
     await stubApis(page, { commits: reply.networkError() });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again.");
+    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again");
   });
 
   test('renders repositories as text, never as HTML', async ({ page }) => {
