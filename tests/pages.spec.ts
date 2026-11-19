@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures';
+import { contrastRatio, rgbaFromCss, rgbaFromHex } from './contrast';
 
 test('Home holds About, Projects and Commits, and no tab switcher', async ({ page }) => {
   await page.goto('/');
@@ -15,10 +16,12 @@ test('Top 5 is its own page with the movies, anime and video games lists', async
   await page.goto('/top-5');
   await expect(page).toHaveTitle(/top 5/);
   await expect(page.getByRole('heading', { name: 'top 5' })).toBeVisible();
+  await expect(page.getByText('my favorite media (updated nov 2026)', { exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Valorant' })).toHaveCount(0);
   const lists = {
     '#movies': ['The Prestige', 'Interstellar', 'Fight Club', 'Shutter Island', 'Shawshank Redemption'],
     '#anime': ['Vinland Saga', 'Attack on Titan', 'Hunter x Hunter', 'Solo Leveling', 'Chainsaw Man'],
-    '#video-games': ['CSGO', 'Ghost of Tsushima', 'Red Dead Redemption 2', 'The Last Of Us Part 1', 'Valorant'],
+    '#video-games': ['CSGO', 'Ghost of Tsushima', 'Red Dead Redemption 2', 'AC Black Flag Resynced', 'The Last Of Us Part 1'],
   };
   for (const [list, titles] of Object.entries(lists)) {
     const shown = await page.locator(list).getByRole('img').evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
@@ -64,3 +67,23 @@ test('the live build has none of the test videos', async ({ page }) => {
   for (const id of ['fixtureNew1', 'fixtureMid1', 'fixtureOld1']) expect(html, id).not.toContain(id);
   expect(html).not.toContain('Fixture video');
 });
+
+for (const theme of ['night', 'day'] as const) {
+  test(`in the Chatbot, guiBot's messages show the guiBot logo and a blue name that reads on the panel (${theme})`, async ({ page }) => {
+    await page.goto('/chatbot');
+    if (theme === 'day') await page.getByRole('button', { name: /^theme:/ }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+
+    const chatbot = page.locator('#chatbot');
+    const name = chatbot.getByText('guiBot', { exact: true }).first();
+    await expect(name).toBeVisible();
+    await expect(chatbot.locator('img[src="/images/projects/guibot.png"]').first()).toBeVisible();
+    await expect(chatbot.getByText('r', { exact: true })).toHaveCount(0);
+
+    const colour = rgbaFromCss(await name.evaluate((node) => getComputedStyle(node).color));
+    const [r, g, b] = colour;
+    expect(b, 'blue is the strongest channel').toBeGreaterThan(Math.max(r, g) + 40);
+    const panel = rgbaFromHex(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--surface-default').trim()));
+    expect(contrastRatio(colour, panel)).toBeGreaterThanOrEqual(4.5);
+  });
+}

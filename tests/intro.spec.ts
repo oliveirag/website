@@ -12,7 +12,7 @@ test('the first visit to Home shows the Intro with the name, a hint and a skip c
 
   await expect(intro(page)).toBeVisible();
   await expect(intro(page).getByRole('img', { name: /^guilherme oliveira/ })).toBeVisible();
-  await expect(intro(page).getByText('click, tap or press any key to continue')).toBeVisible();
+  await expect(intro(page).getByText('tap or press any key to continue', { exact: true })).toBeVisible();
   await expect(intro(page).getByRole('button', { name: 'skip intro' })).toBeVisible();
   // The real heading is in the document the whole time, not only drawn on the canvas.
   await expect(homeHeading(page)).toBeAttached();
@@ -382,7 +382,7 @@ test('the Intro covers Home from the first paint, before any page script runs', 
   });
   await page.goto('/', { waitUntil: 'commit' });
   await expect(intro(page)).toBeVisible();
-  await expect(intro(page).getByText('click, tap or press any key to continue')).toBeVisible();
+  await expect(intro(page).getByText('tap or press any key to continue', { exact: true })).toBeVisible();
   const box = await intro(page).boundingBox();
   expect(box).toEqual({ x: 0, y: 0, ...page.viewportSize()! });
 
@@ -397,7 +397,7 @@ test('the Intro ends even before Bloom Type has loaded', async ({ page }) => {
   await page.route('**/_astro/IntroBloom*.js', () => {});
   await page.goto('/');
   await expect(intro(page)).toBeVisible();
-  await expect(intro(page).getByText('click, tap or press any key to continue')).toBeVisible();
+  await expect(intro(page).getByText('tap or press any key to continue', { exact: true })).toBeVisible();
 
   await page.keyboard.press('Enter');
   await expectHomeShown(page);
