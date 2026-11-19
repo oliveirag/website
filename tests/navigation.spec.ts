@@ -3,11 +3,11 @@ import { test, expect, type Page } from './fixtures';
 const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 
-const LINKS = ['projects', 'thoughts', 'videos', 'chatbot', 'top 5'];
+const LINKS = ['home', 'thoughts', 'videos', 'chatbot', 'top 5'];
 
-// Each page and the link marked on it. "projects" is a section of Home, so Home marks it.
+// Each page and the link marked on it.
 const PAGES = [
-  { route: '/', marked: 'projects' },
+  { route: '/', marked: 'home' },
   { route: '/thoughts', marked: 'thoughts' },
   { route: '/videos', marked: 'videos' },
   { route: '/chatbot', marked: 'chatbot' },
@@ -38,7 +38,7 @@ test.describe('on a desktop', () => {
   test.use({ viewport: DESKTOP });
 
   for (const { route } of PAGES) {
-    test(`the links read projects, thoughts, videos, chatbot, top 5, with the theme toggle at the far right (${route})`, async ({ page }) => {
+    test(`the links read home, thoughts, videos, chatbot, top 5, with the theme toggle at the far right (${route})`, async ({ page }) => {
       await page.goto(route);
       await expect(nav(page).getByRole('link')).toHaveText(LINKS);
       await expect(menuButton(page)).toBeHidden();
@@ -53,22 +53,22 @@ test.describe('on a desktop', () => {
     });
   }
 
-  // A tall screen too: the Sky is then taller than everything below Projects, before and after Commits loads.
-  for (const height of [DESKTOP.height, 1200]) {
-    test(`"projects" goes to Projects on Home from any page (${height}px tall)`, async ({ page }) => {
-      await page.setViewportSize({ ...DESKTOP, height });
-      await page.goto('/top-5');
-      await navLink(page, 'projects').click();
-      await expect(page).toHaveURL(/\/#projects$/);
-      await expect(page.locator('#projects')).toBeInViewport();
-      // Projects lands at the top of the Sky's clear area, below the navigation.
-      const offset = await page.evaluate(() => {
-        const sky = document.getElementById('sky')!;
-        return document.getElementById('projects')!.getBoundingClientRect().top - sky.getBoundingClientRect().top - parseFloat(getComputedStyle(sky).paddingTop);
-      });
-      expect(Math.abs(offset)).toBeLessThanOrEqual(1);
-    });
-  }
+  test('"home" goes to the top of Home from any page', async ({ page }) => {
+    await page.goto('/top-5');
+    await navLink(page, 'home').click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'guilherme oliveira' })).toBeInViewport();
+    expect(await sky(page).evaluate((el) => el.scrollTop)).toBe(0);
+  });
+
+  test('"home" on Home, scrolled down, goes back to the top', async ({ page }) => {
+    await page.goto('/');
+    await sky(page).evaluate((el) => el.scrollTo({ top: 400, behavior: 'instant' }));
+    await expect.poll(() => sky(page).evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await navLink(page, 'home').click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => sky(page).evaluate((el) => el.scrollTop)).toBe(0);
+  });
 
   test('every control is reachable by keyboard in order and shows a focus ring', async ({ page }) => {
     await page.goto('/chatbot');
@@ -144,28 +144,27 @@ test.describe('on a phone', () => {
     await expect(menuButton(page)).toHaveAttribute('aria-expanded', 'false');
     await expect(navLink(page, 'top 5')).toBeHidden();
 
-    // On Home, "projects" stays on the page, so the menu has to close itself.
+    // On Home, "home" stays on the page, so the menu has to close itself.
     await page.goto('/');
     await menuButton(page).click();
-    await navLink(page, 'projects').click();
-    await expect(page).toHaveURL(/\/#projects$/);
+    await navLink(page, 'home').click();
+    await expect(page).toHaveURL(/\/$/);
     await expect(navLink(page, 'top 5')).toBeHidden();
-    await expect(page.locator('#projects')).toBeInViewport();
   });
 
   test('Escape and a click outside close the menu, and Escape hands focus back to the menu button', async ({ page }) => {
     await page.goto('/');
     await menuButton(page).click();
     await page.keyboard.press('Tab');
-    await expect(navLink(page, 'projects')).toBeFocused();
+    await expect(navLink(page, 'home')).toBeFocused();
     await page.keyboard.press('Escape');
-    await expect(navLink(page, 'projects')).toBeHidden();
+    await expect(navLink(page, 'home')).toBeHidden();
     await expect(menuButton(page)).toBeFocused();
 
     await menuButton(page).click();
-    await expect(navLink(page, 'projects')).toBeVisible();
+    await expect(navLink(page, 'home')).toBeVisible();
     await page.mouse.click(PHONE.width / 2, PHONE.height / 2);
-    await expect(navLink(page, 'projects')).toBeHidden();
+    await expect(navLink(page, 'home')).toBeHidden();
   });
 
   test('the menu is reachable by keyboard and every control in it shows a focus ring', async ({ page }) => {
@@ -182,7 +181,7 @@ test.describe('on a phone', () => {
     await expect(themeToggle(page)).toBeFocused();
     await expect(themeToggle(page)).toHaveCSS('outline-style', 'solid');
     // Moving focus out of the menu closes it.
-    await expect(navLink(page, 'projects')).toBeHidden();
+    await expect(navLink(page, 'home')).toBeHidden();
   });
 
   test('every control in the phone navigation is at least 44px to tap', async ({ page }) => {
@@ -269,7 +268,7 @@ test.describe('moving between pages', () => {
   test('happens without a full reload', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => ((window as unknown as { sameDocument: boolean }).sameDocument = true));
-    for (const name of ['chatbot', 'top 5', 'thoughts', 'videos', 'projects']) {
+    for (const name of ['chatbot', 'top 5', 'thoughts', 'videos', 'home']) {
       await navLink(page, name).click();
       await expect(nav(page).locator('[aria-current="page"]')).toHaveText([name]);
     }
@@ -331,15 +330,15 @@ test.describe('moving between pages', () => {
     await expect(page.getByText('412 commits in 2026')).toBeVisible();
     await navLink(page, 'chatbot').click();
     await expect(page).toHaveURL(/\/chatbot$/);
-    await navLink(page, 'projects').click();
-    await expect(page).toHaveURL(/\/#projects$/);
+    await navLink(page, 'home').click();
+    await expect(page).toHaveURL(/\/$/);
     await expectHomeWorks(page);
   });
 
   test('Home works when the visit starts on another page', async ({ page }) => {
     await page.goto('/chatbot');
-    await navLink(page, 'projects').click();
-    await expect(page).toHaveURL(/\/#projects$/);
+    await navLink(page, 'home').click();
+    await expect(page).toHaveURL(/\/$/);
     await expectHomeWorks(page);
   });
 
