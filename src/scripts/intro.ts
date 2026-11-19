@@ -4,9 +4,10 @@
 // the Field rises from below the screen. Home takes input from the first moment of that move.
 //
 // <html data-intro> drives it: "showing" while it covers the page, "leaving" while it turns into Home, and absent
-// otherwise. Only the head script sets "showing", before first paint on a full load of Home with no hash and
-// the Intro not seen (introBeforePaintScript in preferences.ts). A client-side page change never brings it,
-// so "home" in the navigation goes straight to Home.
+// otherwise. "showing" is set in two places only: by the head script, before first paint on a full load of Home
+// with no hash and the Intro not seen (introBeforePaintScript in preferences.ts), and by replayIntro, when the
+// visitor asks for it again on Home. A client-side page change never brings it, so "home" in the navigation
+// goes straight to Home.
 import type { IntroDrawing } from '../components/IntroBloom';
 import { flyNameHome, type Flight } from './intro-flight';
 import { write } from './preferences';
@@ -165,9 +166,10 @@ export function startIntro(intro: HTMLElement): () => void {
   // Clicking would move focus to the Intro itself after the heading took it.
   const onMouseDown = (event: MouseEvent) => event.preventDefault();
   // Any key ends the Intro, and does only that. Browser shortcuts (Cmd, or Ctrl without Alt) are left alone.
-  // Ctrl with Alt is AltGr on Windows, which types characters, so it counts as a key.
+  // Ctrl with Alt is AltGr on Windows, which types characters, so it counts as a key. A key held down from
+  // before (Enter on Replay Intro, say) repeats without ending it; pressing a key again does.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (ended || event.metaKey || (event.ctrlKey && !event.altKey)) return;
+    if (ended || event.repeat || event.metaKey || (event.ctrlKey && !event.altKey)) return;
     event.preventDefault();
     event.stopPropagation();
     end(false);
@@ -195,4 +197,12 @@ export function startIntro(intro: HTMLElement): () => void {
   }
 
   return teardown;
+}
+
+// Plays the Intro in `intro` again for a visitor on Home who has already seen it, exactly as on a first visit:
+// from the start and from the top of Home, so it lands back on the heading. Returns startIntro's teardown.
+export function replayIntro(intro: HTMLElement): () => void {
+  document.getElementById('sky')?.scrollTo({ top: 0, behavior: 'instant' });
+  setIntroState('showing');
+  return startIntro(intro);
 }

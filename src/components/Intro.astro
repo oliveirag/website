@@ -173,12 +173,26 @@ import { introCustomProperties } from '../scripts/scene-palette';
 </style>
 
 <script>
-  import { introState, startIntro } from '../scripts/intro';
+  import { introState, replayIntro, startIntro } from '../scripts/intro';
   import { onEveryPage } from '../scripts/page-lifecycle';
 
   onEveryPage(() => {
     const intro = document.getElementById('intro');
-    if (!intro || introState() !== 'showing') return;
-    return startIntro(intro);
+    if (!intro) return;
+    let stop = introState() === 'showing' ? startIntro(intro) : undefined;
+
+    // Replay Intro (ReplayIntro.astro) plays it again. A press while it shows or leaves does nothing.
+    const replay = document.querySelector('[data-intro-replay]');
+    const onReplay = () => {
+      if (introState()) return;
+      stop?.();
+      stop = replayIntro(intro);
+    };
+    replay?.addEventListener('click', onReplay);
+
+    return () => {
+      replay?.removeEventListener('click', onReplay);
+      stop?.();
+    };
   });
 </script>
