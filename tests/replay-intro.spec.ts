@@ -69,7 +69,7 @@ test('replay intro plays the Intro from the start, with the name drawing again, 
   await expect(intro(page)).toBeVisible();
   await expect(intro(page)).toBeFocused();
   await expect(intro(page).getByRole('img', { name: /^guilherme oliveira/ })).toBeVisible();
-  await expect(intro(page).getByText('click, tap or press any key to continue')).toBeVisible();
+  await expect(intro(page).getByText('tap or press any key to continue', { exact: true })).toBeVisible();
   // The grass waits below the screen to rise again, as on a first visit.
   const band = (await page.locator('#field').boundingBox())!;
   expect(band.y).toBeGreaterThanOrEqual(page.viewportSize()!.height - 1);

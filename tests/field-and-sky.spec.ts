@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './fixtures';
+import { test, expect, type Page, PROJECT_TITLES, projectCard } from './fixtures';
 import { contentOverField } from './field';
 
 const DESKTOP = { width: 1280, height: 800 };
@@ -316,7 +316,8 @@ for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE }
       page.getByRole('link', { name: 'Download resume' }),
       page.getByRole('img', { name: 'Guilherme Oliveira' }),
       page.getByRole('region', { name: 'Now Playing' }),
-      ...['Zaklang', 'Ollie', 'OneTap', 'Aperture'].map((name) => page.getByRole('link', { name: new RegExp(name) })),
+      ...PROJECT_TITLES.map((title) => projectCard(page, title)),
+      page.getByRole('link', { name: 'Teraphobia source on github' }),
       page.getByText('412 commits in 2026'),
     ];
     for (const control of controls) {
@@ -330,7 +331,7 @@ for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE }
   test(`everything on Top 5 and Chatbot can be scrolled to and clicked (${size})`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/top-5');
-    for (const title of ['The Prestige', 'Vinland Saga', 'Valorant']) {
+    for (const title of ['The Prestige', 'Vinland Saga', 'The Last Of Us Part 1']) {
       await page.getByRole('img', { name: title }).click({ trial: true });
       await expect(page.getByRole('img', { name: title })).toBeInViewport();
     }

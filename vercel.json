@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/GuilhermeResume.pdf", "destination": "/resume.pdf", "permanent": true }
+  ]
+}

@@ -12,8 +12,6 @@ const ORIGINAL_COLOURS: Record<string, [day: string, night: string]> = {
   javascript: ['#ca8a04', '#fde047'],
   typescript: ['#3b82f6', '#93c5fd'],
   swift: ['#ea580c', '#fb923c'],
-  java: ['#dc2626', '#ef4444'],
-  'c/c++': ['#f97316', '#fdba74'],
   astro: ['#dc2626', '#f87171'],
   react: ['#0284c7', '#dbeafe'],
   tailwind: ['#0891b2', '#93c5fd'],
