@@ -53,18 +53,22 @@ test.describe('on a desktop', () => {
     });
   }
 
-  test('"projects" goes to Projects on Home from any page', async ({ page }) => {
-    await page.goto('/top-5');
-    await navLink(page, 'projects').click();
-    await expect(page).toHaveURL(/\/#projects$/);
-    await expect(page.locator('#projects')).toBeInViewport();
-    // Projects lands at the top of the Sky's clear area, below the navigation.
-    const offset = await page.evaluate(() => {
-      const sky = document.getElementById('sky')!;
-      return document.getElementById('projects')!.getBoundingClientRect().top - sky.getBoundingClientRect().top - parseFloat(getComputedStyle(sky).paddingTop);
+  // A tall screen too: the Sky is then taller than everything below Projects, before and after Commits loads.
+  for (const height of [DESKTOP.height, 1200]) {
+    test(`"projects" goes to Projects on Home from any page (${height}px tall)`, async ({ page }) => {
+      await page.setViewportSize({ ...DESKTOP, height });
+      await page.goto('/top-5');
+      await navLink(page, 'projects').click();
+      await expect(page).toHaveURL(/\/#projects$/);
+      await expect(page.locator('#projects')).toBeInViewport();
+      // Projects lands at the top of the Sky's clear area, below the navigation.
+      const offset = await page.evaluate(() => {
+        const sky = document.getElementById('sky')!;
+        return document.getElementById('projects')!.getBoundingClientRect().top - sky.getBoundingClientRect().top - parseFloat(getComputedStyle(sky).paddingTop);
+      });
+      expect(Math.abs(offset)).toBeLessThanOrEqual(1);
     });
-    expect(Math.abs(offset)).toBeLessThanOrEqual(1);
-  });
+  }
 
   test('every control is reachable by keyboard in order and shows a focus ring', async ({ page }) => {
     await page.goto('/chatbot');

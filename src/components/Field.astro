@@ -15,17 +15,16 @@ import { skyCustomProperties } from '../scripts/scene-palette';
 
 <style is:global>
   :root {
-    /* The share of the viewport the grass fills, and the quality the scene draws at. */
-    --field-share: 0.3;
+    /* The share of the viewport the grass fills at every size, and the quality the scene draws at.
+       FieldScene reads both values from here, so the band and the scene always agree. */
+    --field-share: 0.2;
     --field-quality: high;
     --field-height: calc(var(--field-share) * 100vh);
   }
 
-  /* Phones, upright or on their side: less grass, so there is more Sky to read in, drawn at the scene's
-     lighter quality. FieldScene reads both values from here, so the band and the scene always agree. */
+  /* Phones, upright or on their side, draw the scene at its lighter quality. */
   @media (max-width: 639px), (max-height: 499px) {
     :root {
-      --field-share: 0.22;
       --field-quality: fast;
     }
   }
