@@ -5,8 +5,8 @@
 //
 // <html data-intro> drives it: "showing" while it covers the page, "leaving" while it turns into Home, and absent
 // otherwise. Only the head script sets "showing", before first paint on a full load of Home with no hash and
-// the Intro not seen (introBeforePaintScript in preferences.ts). A client-side page change never brings it:
-// the only link into Home is "projects", which points at a spot on the page.
+// the Intro not seen (introBeforePaintScript in preferences.ts). A client-side page change never brings it,
+// so "home" in the navigation goes straight to Home.
 import type { IntroDrawing } from '../components/IntroBloom';
 import { flyNameHome, type Flight } from './intro-flight';
 import { write } from './preferences';
