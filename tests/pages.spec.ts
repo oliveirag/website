@@ -139,3 +139,14 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     }
   });
 }
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`the Chatbot message box and Send are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/chatbot');
+    for (const control of [page.getByRole('textbox', { name: 'Message' }), page.getByRole('button', { name: 'Send message' })]) {
+      const box = (await control.boundingBox())!;
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+}
