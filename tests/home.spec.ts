@@ -170,3 +170,15 @@ for (const [state, commitsReply] of Object.entries(commitsStates)) {
     expect(lines.filter((line) => /(?<!\.)\.$/.test(line))).toEqual([]);
   });
 }
+
+// Links that stand alone on a line, rather than sitting in a sentence, are controls and get a 44px target.
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`the old site and resume links on Home are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    for (const name of ['click here for old site', 'Download resume']) {
+      const box = (await page.getByRole('link', { name }).boundingBox())!;
+      expect(box.height, name).toBeGreaterThanOrEqual(44);
+    }
+  });
+}

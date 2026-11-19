@@ -158,7 +158,7 @@ const Chatbot = () => {
           onSubmit={handleSubmit}
         >
           <input
-            className="w-full h-11 md:h-10 bg-transparent text-primary placeholder:text-secondary px-4 focus:outline-none focus-visible:outline-none"
+            className="w-full h-11 bg-transparent text-primary placeholder:text-secondary px-4 focus:outline-none focus-visible:outline-none"
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
