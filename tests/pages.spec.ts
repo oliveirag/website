@@ -119,3 +119,23 @@ test('the Chatbot takes no message until it is ready, then sends one', async ({ 
   await expect(page.getByText('ready now')).toBeVisible();
   await expect(page.getByText('hi gui')).toBeVisible();
 });
+
+// Each poster's rank badge sits over its top-left corner. The rows scroll sideways, which clips anything outside
+// them, so every badge has to sit inside its row: none cut off at the top, and the first one not cut off at the left.
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`no Top 5 rank badge is cut off (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/top-5');
+    for (const list of ['movies', 'anime', 'video-games']) {
+      const row = page.locator(`#${list} > div`).nth(1);
+      const rowBox = (await row.boundingBox())!;
+      const badges = row.locator('span.rounded-full');
+      await expect(badges).toHaveCount(5);
+      for (const [index, badge] of (await badges.all()).entries()) {
+        const box = (await badge.boundingBox())!;
+        expect(box.y, `${list} #${index + 1} top`).toBeGreaterThanOrEqual(rowBox.y);
+        if (index === 0) expect(box.x, `${list} #1 left`).toBeGreaterThanOrEqual(rowBox.x);
+      }
+    }
+  });
+}
