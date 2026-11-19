@@ -191,13 +191,6 @@ const mainProjects = [
 
 
 <style is:global>
-/* After a link to /#projects, Projects and everything below it is at least as tall as the Sky's clear area,
-   so the Sky can always scroll Projects to its top, on any screen and before Commits has loaded. Without
-   the link Home keeps its own height, so on a screen tall enough for all of it, it doesn't scroll at all. */
-#content-container:has(> #projects:target) {
-  min-height: calc(var(--sky-height) - var(--sky-top-inset) - var(--sky-fade));
-}
-
 /* Night: the original colours, with violet one step lighter so it still reads just above the horizon.
    Day: deeper versions of the same hues, so they read on the light sky. */
 .rainbow-letters {

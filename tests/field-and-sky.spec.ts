@@ -51,8 +51,8 @@ for (const [size, viewport] of Object.entries({ phone: PHONE, 'phone on its side
     await expect(page.getByRole('link', { name: 'top 5' })).toBeVisible();
     expect(await contentOverField(page)).toEqual([]);
     // Every link can still be reached, scrolling the menu if it has to.
-    for (const name of ['projects', 'thoughts', 'videos', 'chatbot', 'top 5']) {
-      await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name }).click({ trial: true });
+    for (const name of ['home', 'thoughts', 'videos', 'chatbot', 'top 5']) {
+      await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name, exact: true }).click({ trial: true });
     }
   });
 }
@@ -169,8 +169,8 @@ async function placeInSky(page: Page, selector: string) {
 for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE })) {
   test(`in-page anchors land at the top of the Sky (${size})`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto('/#projects');
-    await expect.poll(() => placeInSky(page, '#projects')).toEqual({ fromClearTop: 0, inClearArea: true });
+    await page.goto('/#contact');
+    await expect.poll(() => placeInSky(page, '#contact')).toEqual({ fromClearTop: 0, inClearArea: true });
 
     await page.evaluate(() => document.getElementById('sky')!.scrollTo({ top: 0, behavior: 'instant' }));
     await page.evaluate(() => (window.location.hash = '#tech-stack'));
