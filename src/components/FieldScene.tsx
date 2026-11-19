@@ -14,7 +14,7 @@ function fieldSetting(name: string) {
 // around and the horizon the scene draws always agree.
 function fieldShare() {
   const share = parseFloat(fieldSetting('--field-share'));
-  return Number.isFinite(share) ? share : 0.3;
+  return Number.isFinite(share) ? share : 0.2;
 }
 
 // Phones draw at the scene's lighter quality, also set in CSS (--field-quality) next to the share.
