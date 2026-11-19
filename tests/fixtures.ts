@@ -103,3 +103,11 @@ export async function motionSettled(page: Page) {
 
 export { expect } from '@playwright/test';
 export type { Page, Locator } from '@playwright/test';
+
+// The Projects cards on Home, in order.
+export const PROJECT_TITLES = ['Zaklang', 'Ollie', 'OneTap', 'Aperture', 'Teraphobia', 'guiBot'];
+
+// A project's card link. Its name starts with the title, like the separate "<title> source on github" link some
+// cards have beside them, so that one is left out.
+export const projectCard = (page: Page, title: string) =>
+  page.getByRole('link', { name: new RegExp(`^${title}(?! source on github)`) });

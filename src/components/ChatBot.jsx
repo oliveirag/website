@@ -115,15 +115,18 @@ const Chatbot = () => {
         {writeHistory.map((msg, index) => (
           <div key={index} className="mb-4">
             <div className="flex items-start space-x-3">
-              <div className={`w-8 h-8 mt-1 rounded-full flex-shrink-0 text-xs border ${
-                msg.role === 'user' ? 'bg-blue-500 border-blue-500' : 'bg-red-500 border-red-500'
-              } flex items-center justify-center text-white`}>
-                {msg.role === 'user' ? 'y' : 'r'}
-              </div>
+              {msg.role === 'user' ? (
+                <div className="w-8 h-8 mt-1 rounded-full flex-shrink-0 text-xs border bg-blue-500 border-blue-500 flex items-center justify-center text-white">
+                  y
+                </div>
+              ) : (
+                // The name beside it already says who is talking, so the logo is decorative.
+                <img src="/images/projects/guibot.png" alt="" className="w-8 h-8 mt-1 rounded-full flex-shrink-0" />
+              )}
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className={`font-bold ${
-                    msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
+                    msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-sky-700 dark:text-sky-400'
                   }`}>
                     {msg.role === 'user' ? 'you' : 'guiBot'}
                   </span>
