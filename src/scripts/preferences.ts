@@ -101,7 +101,7 @@ export const mutedBeforePaintScript = `(function () {
 
 // Inline script for <head>: on a full load of Home, for a visitor who hasn't seen the Intro this session, marks
 // <html> with data-intro="showing" before first paint, so the Intro covers the page from the start and Home
-// never flashes. A link to a spot on Home (/#projects) gets that spot, not the Intro.
+// never flashes. A link to a spot on Home (/#contact) gets that spot, not the Intro.
 export const introBeforePaintScript = `(function () {
   if (location.pathname !== '/' || location.hash) return;
   try {
