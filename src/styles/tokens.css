@@ -112,41 +112,6 @@
   }
 }
 
-/* Primary button: inverse of the page. Press scales to 0.97 on pointer down. */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 1px solid var(--surface-action);
-  background: var(--surface-action);
-  color: var(--text-on-action);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  transition:
-    transform var(--duration-press) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-}
-.btn-primary:active {
-  transform: scale(0.97);
-}
-@media (hover: hover) and (pointer: fine) {
-  .btn-primary:hover {
-    background: var(--surface-action-hover);
-    border-color: var(--surface-action-hover);
-  }
-}
-@media (max-width: 767px) {
-  .btn-primary {
-    height: 44px;
-  }
-}
-
 /* Interactive card and glowing border: 1px border.default, steps to border.strong on hover,
    with a radial glow that follows the mouse (set by scripts/hover.js). */
 .glow-border {
@@ -178,9 +143,6 @@
   .motion-preset-slide-right-sm,
   .motion-preset-slide-left-sm {
     animation: none !important;
-  }
-  .btn-primary:active {
-    transform: none;
   }
 }
 
