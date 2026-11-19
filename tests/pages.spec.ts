@@ -87,3 +87,35 @@ for (const theme of ['night', 'day'] as const) {
     expect(contrastRatio(colour, panel)).toBeGreaterThanOrEqual(4.5);
   });
 }
+
+// Until the Chatbot's script has loaded, a message typed into the server-rendered box would be wiped when the
+// script takes over, and Send would reload the page. So the box and Send take nothing until the Chatbot is ready.
+test('the Chatbot takes no message until it is ready, then sends one', async ({ page }) => {
+  let release!: () => void;
+  const scriptHeld = new Promise<void>((resolve) => (release = resolve));
+  await page.route('**/_astro/ChatBot.*.js', async (route) => {
+    await scriptHeld;
+    await route.continue();
+  });
+  await page.route('https://my-website-spotify-api.vercel.app/api/chatbot', (route) => {
+    const headers = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-headers': 'content-type',
+      'access-control-allow-methods': 'POST, OPTIONS',
+    };
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    return route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify({ botOutput: 'ready now' }) });
+  });
+  await page.goto('/chatbot', { waitUntil: 'domcontentloaded' });
+
+  const message = page.getByRole('textbox', { name: 'Message' });
+  await expect(message).toBeVisible();
+  await expect(message).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Send message' })).toBeDisabled();
+
+  release();
+  await message.fill('hi gui');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByText('ready now')).toBeVisible();
+  await expect(page.getByText('hi gui')).toBeVisible();
+});
