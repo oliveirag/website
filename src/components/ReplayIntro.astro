@@ -1,0 +1,58 @@
+---
+// Replay Intro: Home's text control in the bottom right just above the grass line, mirroring the sound control
+// in the bottom left. It plays the Intro again from the start (the script in Intro.astro), which then lands
+// back on Home the way a first visit does. It comes after the sound control in the page, so it is the last
+// stop when tabbing through Home.
+---
+
+<button type="button" class="replay-intro" data-intro-replay>replay intro</button>
+
+<style is:global>
+  .replay-intro {
+    position: fixed;
+    right: 16px;
+    /* Sits on the Sky's bottom edge, the same line as the sound control, so it never reaches the grass. */
+    bottom: calc(var(--field-height) + var(--sky-gap));
+    /* Over the Sky and the scroll hint, but under the navigation: on a short screen the open phone menu
+       reaches down to this corner, and its last link must stay on top. */
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-press) var(--ease-out);
+  }
+  @media (min-width: 640px) {
+    .replay-intro {
+      right: 32px;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .replay-intro:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+  }
+  .replay-intro:active {
+    transform: scale(0.95);
+  }
+  .replay-intro:focus-visible {
+    color: var(--text-primary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .replay-intro:active {
+      transform: none;
+    }
+  }
+</style>
