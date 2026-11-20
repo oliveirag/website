@@ -21,14 +21,14 @@ test.describe('Commits', () => {
     await stubApis(page, { commits: reply.json({ year: 2026, totalCommits: 0, repositories: [] }) });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText('No contribution data found.');
+    await expect(commitsRegion(page)).toContainText('No contribution data found');
   });
 
   test('shows a clear message when the API fails', async ({ page }) => {
     await stubApis(page, { commits: reply.serverError() });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again.");
+    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again");
     await expect(commitsRegion(page)).not.toContainText('Loading');
   });
 
@@ -36,7 +36,7 @@ test.describe('Commits', () => {
     await stubApis(page, { commits: reply.networkError() });
     await page.goto('/');
 
-    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again.");
+    await expect(commitsRegion(page)).toContainText("Couldn't load git commits. Refresh to try again");
   });
 
   test('renders repositories as text, never as HTML', async ({ page }) => {
@@ -50,5 +50,25 @@ test.describe('Commits', () => {
     await expect(commitsRegion(page)).toContainText(name);
     await expect(commitsRegion(page)).toContainText(language);
     await expect(page.locator('#injected-repo, #injected-language')).toHaveCount(0);
+  });
+
+  test('a repository with no language shows only its commits, and one commit reads as "1 commit"', async ({ page }) => {
+    await stubApis(page, {
+      commits: reply.json({
+        year: 2026,
+        totalCommits: 13,
+        repositories: [
+          { name: 'website', language: 'Astro', commits: 12 },
+          { name: 'design-system', language: null, commits: 1 },
+        ],
+      }),
+    });
+    await page.goto('/');
+    const region = commitsRegion(page);
+
+    await expect(region).toContainText('Astro • 12 commits');
+    await expect(region).toContainText('design-system');
+    await expect(region).not.toContainText('null');
+    await expect(region.getByText('1 commit', { exact: true })).toBeVisible();
   });
 });

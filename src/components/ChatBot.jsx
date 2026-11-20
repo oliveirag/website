@@ -12,10 +12,14 @@ const Chatbot = () => {
   const [writeHistory, setWriteHistory] = useState([]); 
   const [isLoading, setIsLoading] = useState(false); 
   const [retryCount, setRetryCount] = useState(0); // State to track retry count
+  // False in the server-rendered page: text typed there would be wiped when React takes over, and Send would
+  // reload the page. The box and Send open once the component has mounted.
+  const [ready, setReady] = useState(false);
   let errorInput = '';
   const chatContainerRef = useRef(null);
-  
+
   useEffect(() => {
+    setReady(true);
     setWriteHistory([
       { 
         role: 'model', 
@@ -154,19 +158,19 @@ const Chatbot = () => {
           onSubmit={handleSubmit}
         >
           <input
-            className="w-full h-11 md:h-10 bg-transparent text-primary placeholder:text-secondary px-4 focus:outline-none focus-visible:outline-none"
+            className="w-full h-11 bg-transparent text-primary placeholder:text-secondary px-4 focus:outline-none focus-visible:outline-none"
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="type your message..."
             aria-label="Message"
-            disabled={isLoading}
+            disabled={isLoading || !ready}
           />
           <button 
             className="w-11 h-11 flex items-center justify-center shrink-0 text-icon-primary disabled:text-icon-disabled"
             type="submit"
             aria-label="Send message"
-            disabled={isLoading}
+            disabled={isLoading || !ready}
           >
            <ArrowIcon />
           </button>
