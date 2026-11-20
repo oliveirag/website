@@ -33,7 +33,7 @@ const day = dayOf(post.data.date);
       <div class="flex items-start gap-4">
         <h1 class="flex-1 min-w-0">{post.data.title}</h1>
       </div>
-      <time datetime={day} class="block mt-2 font-reading text-[15px] leading-6 text-secondary">{day}</time>
+      <time datetime={day} class="block mt-2 font-reading text-sm leading-6 text-secondary">{day}</time>
     </header>
     <div class="prose prose-thoughts max-w-none font-reading">
       <Content />
@@ -57,7 +57,6 @@ const day = dayOf(post.data.date);
     )}
   </article>
 </Layout>
-
 
 <style>
   .neighbour:hover .neighbour-title {

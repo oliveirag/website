@@ -1,5 +1,5 @@
-/* Source Serif 4: the reading type of Thoughts posts and the Thoughts list (ADR-0001). Only the Thoughts pages
-   import this file, so no other page asks for these fonts. The files are Fontsource's Latin cuts of Adobe's
+/* Source Serif 4: the reading type of Thoughts posts and the Thoughts list (ADR-0001), used through Tailwind's
+   `font-reading`. Only the Thoughts pages import this file, so no other page asks for these fonts. The files are Fontsource's Latin cuts of Adobe's
    Source Serif 4, and their licence (SIL OFL 1.1) is public/fonts/source-serif-4-LICENSE.md.
    Regular and italic carry the text. Semibold is only for bold words in a post, and the browser fetches it only
    when a post has some. */
@@ -27,13 +27,8 @@
   font-display: swap;
 }
 
+/* Rules in and under a post: its divider, a `---` and a quote's edge. The border tokens are made for surfaces and
+   all but vanish on the Day Sky, so this is the secondary grey, softened, which shows on the Sky in Night and Day. */
 :root {
-  --font-reading: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  /* Rules in and under a post. The border tokens are made for surfaces and all but vanish on the Day sky, so this
-     is the secondary grey, softened, which shows on the sky in Night and Day. */
   --reading-rule: color-mix(in srgb, var(--text-secondary) 40%, transparent);
-}
-
-.font-reading {
-  font-family: var(--font-reading);
 }

@@ -29,7 +29,8 @@ test('everything on Home but my name stays JetBrains Mono', async ({ page }) => 
   }
 });
 
-for (const [path, title] of [['/top-5', 'top 5'], ['/thoughts', 'thoughts'], ['/videos', 'videos']] as const) {
+// Thoughts is left out: its posts read in Source Serif 4, which thoughts.spec.ts checks along with its title.
+for (const [path, title] of [['/top-5', 'top 5'], ['/videos', 'videos']] as const) {
   test(`the ${title} page title is in Instrument Serif and its text stays JetBrains Mono`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
