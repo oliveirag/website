@@ -1,0 +1,68 @@
+---
+// The "..." button beside a Thoughts post's title. It opens the Post menu (PostMenu.astro), which sits outside the
+// Sky so the Sky's fades never thin it out. The button sits on the Sky itself: a ring and three dots in the
+// secondary grey, small to look at and a full 44px to click or tap.
+---
+
+<button
+  type="button"
+  id="post-menu-button"
+  class="post-menu-button"
+  aria-label="Post menu"
+  aria-haspopup="menu"
+  aria-expanded="false"
+  aria-controls="post-menu"
+>
+  <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+    <circle cx="3" cy="8" r="1.25" />
+    <circle cx="8" cy="8" r="1.25" />
+    <circle cx="13" cy="8" r="1.25" />
+  </svg>
+</button>
+
+<style>
+  .post-menu-button {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    /* Centred on the title's first 40px line. */
+    margin-top: 4px;
+    border: 1px solid var(--reading-rule);
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-base),
+      border-color var(--duration-base),
+      transform var(--duration-press) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .post-menu-button:hover {
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+  }
+  .post-menu-button[aria-expanded='true'] {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+  }
+  .post-menu-button:active {
+    transform: scale(0.95);
+  }
+  /* Small to look at, but a full 44px to click or tap. */
+  .post-menu-button::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .post-menu-button:active {
+      transform: none;
+    }
+  }
+</style>

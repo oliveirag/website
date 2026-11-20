@@ -9,3 +9,6 @@ export async function thoughtsNewestFirst(): Promise<Thought[]> {
 }
 
 export const thoughtPath = (post: Thought) => `/thoughts/${post.id}/`;
+
+// The post's Markdown copy, beside its page: /thoughts/first-light.md for /thoughts/first-light/.
+export const markdownPath = (post: Thought) => `/thoughts/${post.id}.md`;

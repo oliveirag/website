@@ -1,0 +1,172 @@
+---
+// The Post menu: what the "..." button beside a post's title opens, for sharing the post or reading it as plain
+// text. It goes in the page's controls slot, outside the Sky, so the Sky's fades never thin it out; the script
+// places it under the button. Items that open a new tab show an arrow. scripts/post-menu.ts runs it.
+interface Props {
+  /** The post's address on notgui.com, which Copy Link, Share Quote and the AI chats use. */
+  url: string;
+  /** Where the post's Markdown copy is, on this site. */
+  markdown: string;
+}
+
+const { url, markdown } = Astro.props;
+// The prompt a new ChatGPT or Claude chat starts with.
+const prompt = encodeURIComponent(`Read and summarize: ${url}`);
+
+type Item =
+  | { name: string; description: string; action: 'copy-link' | 'copy-page' | 'share-quote' }
+  | { name: string; description: string; href: string };
+
+const groups: Item[][] = [
+  [
+    { name: 'Copy Link', description: 'Copy URL to clipboard', action: 'copy-link' },
+    { name: 'Copy Page', description: 'Copy page as Markdown for LLMs', action: 'copy-page' },
+  ],
+  [{ name: 'View as Markdown', description: 'View this page as plain text', href: markdown }],
+  [
+    { name: 'Open in ChatGPT', description: 'Ask ChatGPT about this page', href: `https://chatgpt.com/?q=${prompt}` },
+    { name: 'Open in Claude', description: 'Ask Claude about this page', href: `https://claude.ai/new?q=${prompt}` },
+  ],
+  [{ name: 'Share Quote', description: 'Copy a URL that highlights the selected quote', action: 'share-quote' }],
+];
+
+const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
+---
+
+<div id="post-menu" class="post-menu" role="menu" aria-label="Post menu" data-url={url} data-markdown={markdown} hidden>
+  {groups.map((group, i) => (
+    <>
+      {i > 0 && <div role="separator" class="post-menu-divider" />}
+      <div role="group">
+        {group.map((item) => {
+          const id = `post-menu-${slug(item.name)}`;
+          const label = (
+            <>
+              <span id={`${id}-name`} class="post-menu-name">
+                {item.name}
+                {'href' in item && (
+                  <>
+                    <svg class="post-menu-arrow" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M5 11 11 5M6 5h5v5" />
+                    </svg>
+                    <span class="sr-only"> (opens in a new tab)</span>
+                  </>
+                )}
+              </span>
+              <span id={`${id}-description`} class="post-menu-description" data-description={item.description}>{item.description}</span>
+            </>
+          );
+          return 'href' in item ? (
+            <a role="menuitem" tabindex="-1" class="post-menu-item" href={item.href} target="_blank" rel="noopener" aria-labelledby={`${id}-name`} aria-describedby={`${id}-description`}>
+              {label}
+            </a>
+          ) : (
+            <button type="button" role="menuitem" tabindex="-1" class="post-menu-item" data-action={item.action} aria-labelledby={`${id}-name`} aria-describedby={`${id}-description`}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  ))}
+</div>
+<!-- Says when something was copied, for screen readers. -->
+<span id="post-menu-status" role="status" class="sr-only"></span>
+
+<style is:global>
+  .post-menu {
+    position: fixed;
+    z-index: 60;
+    width: min(368px, calc(100vw - 32px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4px 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-raised);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.24);
+    transform-origin: top right;
+    animation: post-menu-open var(--duration-fast) var(--ease-out);
+  }
+  .post-menu[hidden] {
+    display: none;
+  }
+  @keyframes post-menu-open {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+  }
+
+  .post-menu-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--border-strong);
+  }
+
+  .post-menu-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 8px 16px;
+    text-align: left;
+    text-decoration: none;
+    color: var(--text-primary);
+    background: transparent;
+    cursor: pointer;
+    outline-offset: -2px;
+  }
+  .post-menu-item:focus {
+    outline: none;
+  }
+  .post-menu-item:focus-visible {
+    outline: 2px solid var(--border-focus);
+  }
+  /* The item under the pointer or the arrow keys. The tint is the primary text colour, faint, so it shows in Night
+     and Day while the grey descriptions keep 4.5:1 on it. */
+  .post-menu-item:not([aria-disabled='true']):focus-visible,
+  .post-menu-item:not([aria-disabled='true']):hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-raised));
+  }
+
+  .post-menu-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .post-menu-description {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--text-secondary);
+  }
+  .post-menu-arrow {
+    flex: none;
+    color: var(--text-secondary);
+  }
+
+  /* Share Quote with nothing selected: greyed out and not pressable, but still reached by the arrow keys so its
+     hint can be read. */
+  .post-menu-item[aria-disabled='true'] {
+    cursor: default;
+  }
+  .post-menu-item[aria-disabled='true'] .post-menu-name,
+  .post-menu-item[aria-disabled='true'] .post-menu-description {
+    color: var(--text-tertiary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-menu {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { onEveryPage } from '../scripts/page-lifecycle';
+  import { setUpPostMenu } from '../scripts/post-menu';
+
+  onEveryPage(setUpPostMenu);
+</script>
