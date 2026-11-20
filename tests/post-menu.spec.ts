@@ -60,7 +60,8 @@ test.describe('the Markdown copy', () => {
     test(`${post.id} has one at its address plus .md, starting with its title and day`, async ({ request }) => {
       const response = await request.get(`/thoughts/${post.id}.md`);
       expect(response.status()).toBe(200);
-      expect(await response.text()).toMatch(new RegExp(`^# ${post.title}\\n\\n${post.day}\\n\\n\\S`));
+      // A byte order mark first says it is UTF-8 to a browser that gets no charset with it.
+      expect(await response.text()).toMatch(new RegExp(`^\\uFEFF# ${post.title}\\n\\n${post.day}\\n\\n\\S`));
     });
   }
 
@@ -68,13 +69,13 @@ test.describe('the Markdown copy', () => {
     const text = await (await request.get(`/thoughts/${posts.middle.id}.md`)).text();
     expect(text).toBe(
       [
-        `# ${posts.middle.title}`,
+        `\uFEFF# ${posts.middle.title}`,
         '',
         posts.middle.day,
         '',
         'A short fixture post with no summary.',
         '',
-        'An aside from a component, kept as words in the Markdown copy.',
+        'An aside from a component, kept as words in the Markdown copy, café and all.',
         '',
         '```js',
         "import { trail } from './trail';",
@@ -195,7 +196,8 @@ test.describe('the Post menu', () => {
   });
 
   test('Copy Page copies the post\'s Markdown copy', async ({ page, request }) => {
-    const markdown = await (await request.get(`/thoughts/${posts.middle.id}.md`)).text();
+    // Without the byte order mark the file starts with.
+    const markdown = (await (await request.get(`/thoughts/${posts.middle.id}.md`)).text()).replace(/^\uFEFF/, '');
     await page.goto(`/thoughts/${posts.middle.id}/`);
     await menuButton(page).click();
     await item(page, 'Copy Page').click();
@@ -213,7 +215,10 @@ test.describe('the Post menu', () => {
     const [tab] = await Promise.all([context.waitForEvent('page'), view.click()]);
     await tab.waitForLoadState();
     expect(tab.url()).toMatch(new RegExp(`/thoughts/${posts.middle.id}\\.md$`));
-    expect(await tab.locator('body').innerText()).toContain(`# ${posts.middle.title}`);
+    const shown = await tab.locator('body').innerText();
+    expect(shown).toContain(`# ${posts.middle.title}`);
+    // Read as UTF-8, so letters beyond ASCII come through.
+    expect(shown).toContain('café and all');
     // The menu closes behind it.
     await expect(menu(page)).toBeHidden();
     await expect(page).toHaveURL(new RegExp(`/thoughts/${posts.middle.id}/$`));
@@ -280,6 +285,40 @@ test.describe('the Post menu', () => {
     const start = encodeURIComponent('This is a fixture post');
     const end = encodeURIComponent('from the paragraphs around it.');
     expect(await readClipboard(page)).toBe(`${address(posts.newest.id)}#:~:text=${start},${end}`);
+  });
+
+  test('a Share Quote link scrolls the post to the quote', async ({ page }) => {
+    await page.goto(`/thoughts/${posts.newest.id}/`);
+    const last = page.locator('#sky .prose > p').last();
+    await select(page, '#sky .prose > p:last-of-type');
+    await menuButton(page).click();
+    await item(page, 'Share Quote').click();
+    const link = await readClipboard(page);
+    expect(link).toBe(`${address(posts.newest.id)}#:~:text=${encodeURIComponent('The last paragraph of the fixture post.')}`);
+    await page.goto('about:blank');
+    await page.goto(link.replace('https://notgui.com', ''));
+    await expect.poll(() => sky(page).evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await expect(last).toBeInViewport();
+  });
+
+  test('Share Quote widens a selection that starts or ends inside a word to whole words, which a link can find', async ({ page }) => {
+    await page.goto(`/thoughts/${posts.newest.id}/`);
+    // "ast paragraph of the fix", from "The last paragraph of the fixture post."
+    await page.evaluate(() => {
+      const text = document.querySelector('#sky .prose > p:last-of-type')!.firstChild!;
+      const range = document.createRange();
+      range.setStart(text, 5);
+      range.setEnd(text, 'The last paragraph of the fix'.length);
+      document.getSelection()!.removeAllRanges();
+      document.getSelection()!.addRange(range);
+    });
+    await menuButton(page).click();
+    await item(page, 'Share Quote').click();
+    const link = await readClipboard(page);
+    expect(link).toBe(`${address(posts.newest.id)}#:~:text=${encodeURIComponent('last paragraph of the fixture')}`);
+    await page.goto('about:blank');
+    await page.goto(link.replace('https://notgui.com', ''));
+    await expect.poll(() => sky(page).evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   });
 
   test('works by keyboard: Enter, Space and the arrows open it, the arrows move, Escape and Tab close it', async ({ page }) => {
