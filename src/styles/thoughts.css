@@ -1,6 +1,7 @@
 /* Source Serif 4: the reading type of Thoughts posts and the Thoughts list (ADR-0001), used through Tailwind's
-   `font-reading`. Only the Thoughts pages import this file, so no other page asks for these fonts. The files are Fontsource's Latin cuts of Adobe's
-   Source Serif 4, and their licence (SIL OFL 1.1) is public/fonts/source-serif-4-LICENSE.md.
+   `font-reading`. Only the Thoughts pages import this file, so no other page asks for these fonts.
+   The files are Fontsource's Latin cuts of Adobe's Source Serif 4, and their licence (SIL OFL 1.1) is
+   public/fonts/source-serif-4-LICENSE.md.
    Regular and italic carry the text. Semibold is only for bold words in a post, and the browser fetches it only
    when a post has some. */
 @font-face {

@@ -1,7 +1,7 @@
-/** @type {import('tailwindcss').Config} */
 // Colors, radii and motion come from oliveirag/design-system via the CSS variables in src/styles/tokens.css.
 const mono = ['JetBrains Mono', 'monospace', 'sans-serif'];
 
+/** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	// dark: classes follow the Night theme on <html data-theme>, not the OS.

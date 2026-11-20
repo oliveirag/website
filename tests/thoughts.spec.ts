@@ -202,6 +202,22 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
+// Most visitors arrive from Home, and the client router swaps pages without a full load, so the font has to come
+// along with the page change too.
+test('Source Serif 4 loads on a post reached from Home through the navigation', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'thoughts' }).click();
+  await expect(page).toHaveURL(/\/thoughts\/?$/);
+  await page.getByRole('link', { name: newestFirst[0].title }).click();
+  await expect(page).toHaveURL(newestFirst[0].href);
+  await expect.poll(() =>
+    page.evaluate(async () => {
+      await document.fonts.ready;
+      return document.fonts.check('17px "Source Serif 4"', 'reading') && [...document.fonts].some((face) => face.family.replace(/"/g, '') === 'Source Serif 4' && face.status === 'loaded');
+    }),
+  ).toBe(true);
+});
+
 test('on Thoughts, each post\'s title, date and summary are in Source Serif 4 and the page title stays in Instrument Serif', async ({ page }) => {
   await page.goto('/thoughts');
   expect(await fontOf(page.getByRole('heading', { level: 1, name: 'thoughts' }))).toMatch(INSTRUMENT_SERIF);
