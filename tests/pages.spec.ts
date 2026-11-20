@@ -4,7 +4,7 @@ import { contrastRatio, rgbaFromCss, rgbaFromHex } from './contrast';
 test('Home holds About, Projects and Commits, and no tab switcher', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('about me')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Zaklang/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /zaklang/ })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Commits' })).toContainText('412 commits in 2026');
   await expect(page.getByRole('tablist')).toHaveCount(0);
   await expect(page.getByRole('tab')).toHaveCount(0);
