@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type TestInfo } from '@playwright/test';
 
 // A broken Thoughts post or a broken Videos entry must fail the build, so it never ships. Each case builds the
@@ -36,6 +36,21 @@ for (const [name, { frontmatter, field }] of Object.entries(brokenPosts)) {
     expect(output).toMatch(new RegExp(`^${field}: `, 'm'));
   });
 }
+
+// The fixture build has three posts, so this is where a post with no neighbours is built: its page ends with the
+// post itself, with no divider and no Previous or Next.
+test('the only post has no divider, Previous or Next', async ({}, testInfo) => {
+  const posts = testInfo.outputPath('posts');
+  mkdirSync(posts, { recursive: true });
+  writeFileSync(`${posts}/only.mdx`, '---\ntitle: The only post\ndate: 2026-11-18\n---\n\nThe post itself.\n');
+
+  const { status, output } = build(testInfo, { THOUGHTS_DIR: posts });
+  expect(status, output).toBe(0);
+  const html = readFileSync(testInfo.outputPath('dist/thoughts/only/index.html'), 'utf8');
+  expect(html).toContain('The post itself.');
+  expect(html).not.toContain('more thoughts');
+  expect(html).not.toMatch(/>\s*(Previous|Next)\s*</);
+});
 
 const good = { youtubeId: 'aBcDeFgHi_1', title: 'A video', date: '2026-11-18' };
 

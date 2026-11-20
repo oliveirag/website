@@ -38,3 +38,17 @@ for (const [path, title] of [['/top-5', 'top 5'], ['/thoughts', 'thoughts'], ['/
     expect(await fontOf(page, '#sky p, #sky span')).toMatch(/^"?JetBrains Mono"?,/);
   });
 }
+
+// Source Serif 4 is the reading type of Thoughts only, so no other page fetches it or asks for it early.
+test('Source Serif 4 is never downloaded or preloaded outside Thoughts', async ({ page }) => {
+  const readingFont: string[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.includes('source-serif')) readingFont.push(request.url());
+  });
+  for (const path of ['/', '/videos', '/chatbot', '/top-5']) {
+    await page.goto(path);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator('link[href*="source-serif"]'), path).toHaveCount(0);
+  }
+  expect(readingFont).toEqual([]);
+});
