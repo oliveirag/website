@@ -1,4 +1,5 @@
-/* Instrument Serif: my name and page titles only (ADR-0001). Everything else stays JetBrains Mono.
+/* Instrument Serif: my name and page titles only (ADR-0001). Everything else stays JetBrains Mono, except the text of
+   Thoughts posts and the Thoughts list, which reads in Source Serif 4 (src/styles/thoughts.css).
    The file is the one that came with the Bloom Type export, and its licence is src/designely/FONT_LICENSE.txt.
    Bloom Type loads the same file for the Intro, so the browser fetches it once. */
 @font-face {

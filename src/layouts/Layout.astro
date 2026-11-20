@@ -13,9 +13,11 @@ import { oldLinksBeforePaintScript } from '../scripts/old-links';
 interface Props {
   title: string;
   description?: string;
+  /** A page read from top to bottom, a Thoughts post: its text fades out under the navigation. */
+  reading?: boolean;
 }
 
-const { title, description = 'peep the website' } = Astro.props;
+const { title, description = 'peep the website', reading = false } = Astro.props;
 import '../styles/scrollbar.css';
 import '../styles/tokens.css';
 import '../styles/type.css';
@@ -35,6 +37,8 @@ import '../styles/type.css';
     <meta name="theme-color" content={themeColors.night}>
     <link rel="icon" href="/images/globe.png" type="image/png">
     <link rel="alternate" type="application/rss+xml" title="thoughts | gui's website" href="/thoughts/rss.xml">
+    <!-- A page's own additions to the head. Thoughts preloads its reading font here, so other pages never fetch it. -->
+    <slot name="head" />
     <script is:inline set:html={themeBeforePaintScript} />
     <script is:inline set:html={mutedBeforePaintScript} />
     <script is:inline set:html={introBeforePaintScript} />
@@ -54,7 +58,7 @@ import '../styles/type.css';
     <slot name="intro" />
     <Field />
     <Navigation />
-    <Sky>
+    <Sky reading={reading}>
       <slot />
     </Sky>
     <SoundControl />
