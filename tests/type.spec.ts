@@ -29,7 +29,8 @@ test('everything on Home but my name stays JetBrains Mono', async ({ page }) => 
   }
 });
 
-for (const [path, title] of [['/top-5', 'top 5'], ['/thoughts', 'thoughts'], ['/videos', 'videos']] as const) {
+// Thoughts is left out: its posts read in Source Serif 4, which thoughts.spec.ts checks along with its title.
+for (const [path, title] of [['/top-5', 'top 5'], ['/videos', 'videos']] as const) {
   test(`the ${title} page title is in Instrument Serif and its text stays JetBrains Mono`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
@@ -38,3 +39,17 @@ for (const [path, title] of [['/top-5', 'top 5'], ['/thoughts', 'thoughts'], ['/
     expect(await fontOf(page, '#sky p, #sky span')).toMatch(/^"?JetBrains Mono"?,/);
   });
 }
+
+// Source Serif 4 is the reading type of Thoughts only, so no other page fetches it or asks for it early.
+test('Source Serif 4 is never downloaded or preloaded outside Thoughts', async ({ page }) => {
+  const readingFont: string[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.includes('source-serif')) readingFont.push(request.url());
+  });
+  for (const path of ['/', '/videos', '/chatbot', '/top-5']) {
+    await page.goto(path);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator('link[href*="source-serif"]'), path).toHaveCount(0);
+  }
+  expect(readingFont).toEqual([]);
+});
