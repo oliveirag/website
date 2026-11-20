@@ -1,7 +1,8 @@
 import { test, expect, motionSettled, stubChatbot, type Page } from './fixtures';
 import { textBelowAA } from './sky-text';
 
-// Checks from the release check (#19) that no other spec covered: contrast on the Chatbot and Top 5 pages, no
+// Checks from the release check (#19) that no other spec covered: contrast on the Chatbot and Top 5 pages and on
+// Thoughts and Videos with nothing posted (as they are live today; their own specs check the filled pages), no
 // jQuery in anything the site serves, and every page working before the scenes have loaded.
 
 const PAGES = ['/', '/chatbot', '/top-5', '/thoughts', '/videos'];
@@ -16,12 +17,14 @@ async function openInTheme(page: Page, path: string, theme: 'night' | 'day') {
 }
 
 for (const theme of ['night', 'day'] as const) {
-  for (const path of ['/chatbot', '/top-5']) {
+  for (const path of ['/chatbot', '/top-5', '/thoughts', '/videos']) {
     test(`in ${theme}, all text on ${path} reaches 4.5:1 from the top of the sky to the horizon`, async ({ page }) => {
       await openInTheme(page, path, theme);
       if (path === '/chatbot') await expect(page.getByText(/tuned to act like Gui/)).toBeVisible();
       const { found, failures, rows } = await textBelowAA(page);
-      // Guards against reading an empty page: Top 5 has its titles and list names on the sky, the Chatbot only the chrome.
+      // Guards against reading an empty page: Top 5 has its titles and list names on the sky; the other pages have
+      // the navigation, the sound control and their title or empty state. Text on the Chatbot's card is on its
+      // surface (pages.spec checks the guiBot name there).
       expect(found.length).toBeGreaterThan(path === '/top-5' ? 10 : 4);
       if (process.env.PRINT_CONTRAST) console.log(`\n${theme}, ${path}\n${rows.join('\n')}`);
       expect(failures).toEqual([]);
