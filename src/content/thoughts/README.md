@@ -15,3 +15,5 @@ The post, in Markdown and MDX.
 A post with no title or no date fails the build. This README is not a post: only `.mdx` files are.
 
 Each post also gets a plain Markdown copy beside its page, built from the same file: `first-light.mdx` is also `/thoughts/first-light.md`. It holds the title, the date and the text. Imports, exports, `{expressions}` and component tags are left out, and the words inside a component stay.
+
+Each `## heading` in a post starts a section. A post with at least one shows the Section pill at the bottom of the screen, which names the section being read and lists them all; `###` and smaller headings stay inside their section.
