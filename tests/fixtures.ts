@@ -119,7 +119,7 @@ export { expect } from '@playwright/test';
 export type { Page, Locator } from '@playwright/test';
 
 // The Projects cards on Home, in order.
-export const PROJECT_TITLES = ['Zaklang', 'Ollie', 'OneTap', 'Aperture', 'Teraphobia', 'guiBot'];
+export const PROJECT_TITLES = ['zaklang', 'teraphobia', 'ollie', 'aperture', 'onetap', 'guibot'];
 
 // A project's card link. Its name starts with the title, like the separate "<title> source on github" link some
 // cards have beside them, so that one is left out.

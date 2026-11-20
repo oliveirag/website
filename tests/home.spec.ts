@@ -57,25 +57,47 @@ test('"about this site" says what the site is built with, ends with the Classic 
 // Each card goes to the project's site, or to its source when there is no site. A project with both also has its
 // own GitHub link beside the card.
 const projects = [
-  { title: 'Zaklang', card: 'https://github.com/sducf/zaklang', logo: '/images/projects/zaklang.png' },
-  { title: 'Ollie', card: 'https://github.com/oliveirag/ollie', logo: '/images/projects/ollie.svg' },
-  { title: 'OneTap', card: 'https://github.com/oliveirag/onetap', logo: '/images/projects/onetap.svg' },
   {
-    title: 'Aperture',
-    card: 'https://lookthrough-rosy.vercel.app/',
-    source: 'https://github.com/oliveirag/aperture',
-    logo: '/images/projects/aperture.svg',
+    title: 'zaklang',
+    card: 'https://github.com/sducf/zaklang',
+    logo: '/images/projects/zaklang.png',
+    description: 'Token-efficient programming language and benchmark for LLM code generation',
   },
   {
-    title: 'Teraphobia',
+    title: 'teraphobia',
     card: 'https://teraphobia.com/',
     source: 'https://github.com/ucfdevs/teraphobia',
     logo: '/images/projects/teraphobia.png',
+    description: 'Horror social deduction party game',
   },
-  { title: 'guiBot', card: 'https://github.com/oliveirag/guiBot', logo: '/images/projects/guibot.png' },
+  {
+    title: 'ollie',
+    card: 'https://github.com/oliveirag/ollie',
+    logo: '/images/projects/ollie.svg',
+    description: 'Robinhood AI trading iOS app',
+  },
+  {
+    title: 'aperture',
+    card: 'https://lookthrough-rosy.vercel.app/',
+    source: 'https://github.com/oliveirag/aperture',
+    logo: '/images/projects/aperture.svg',
+    description: 'AI investment research platform',
+  },
+  {
+    title: 'onetap',
+    card: 'https://github.com/oliveirag/onetap',
+    logo: '/images/projects/onetap.svg',
+    description: 'Mobile app that routes purchases to your best credit card',
+  },
+  {
+    title: 'guibot',
+    card: 'https://github.com/oliveirag/guiBot',
+    logo: '/images/projects/guibot.png',
+    description: 'Discord bot for moderation',
+  },
 ];
 
-test('Projects shows my six projects in order, each card linking to its site or its source', async ({ page }) => {
+test('Projects shows my six projects in order with lowercase titles and their descriptions, each card linking to its site or its source', async ({ page }) => {
   await page.goto('/');
 
   const titles = await page.locator('#projects .project').evaluateAll((cards) =>
@@ -84,9 +106,10 @@ test('Projects shows my six projects in order, each card linking to its site or 
   expect(titles).toEqual(PROJECT_TITLES);
   expect(projects.map(({ title }) => title)).toEqual(PROJECT_TITLES);
 
-  for (const { title, card, source, logo } of projects) {
+  for (const { title, card, source, logo, description } of projects) {
     const link = projectCard(page, title);
     await expect(link, title).toHaveAttribute('href', card);
+    await expect(link.locator('p'), title).toHaveText(description);
     await expect(link.locator('img'), title).toHaveAttribute('src', logo);
     const sourceLink = page.getByRole('link', { name: `${title} source on github` });
     if (source) {
@@ -97,8 +120,6 @@ test('Projects shows my six projects in order, each card linking to its site or 
       await expect(sourceLink, title).toHaveCount(0);
     }
   }
-  await expect(projectCard(page, 'Teraphobia')).toContainText('Horror social deduction party game');
-  await expect(projectCard(page, 'guiBot')).toContainText('Discord bot for moderation and project management');
 });
 
 test('"Download resume" is a text link styled like the Classic site link, and serves my resume', async ({ page }) => {

@@ -13,7 +13,7 @@ test('the glow on borders follows the pointer', async ({ page }) => {
   await expect(page.getByText('412 commits in 2026')).toBeVisible();
 
   const targets = {
-    'project card': page.getByRole('link', { name: /Zaklang/ }),
+    'project card': page.getByRole('link', { name: /zaklang/ }),
     divider: page.locator('.glow-divider').first(),
   };
 
