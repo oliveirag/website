@@ -60,7 +60,12 @@ const projects = [
   { title: 'Zaklang', card: 'https://github.com/sducf/zaklang', logo: '/images/projects/zaklang.png' },
   { title: 'Ollie', card: 'https://github.com/oliveirag/ollie', logo: '/images/projects/ollie.svg' },
   { title: 'OneTap', card: 'https://github.com/oliveirag/onetap', logo: '/images/projects/onetap.svg' },
-  { title: 'Aperture', card: 'https://lookthrough-rosy.vercel.app/', logo: '/images/projects/aperture.svg' },
+  {
+    title: 'Aperture',
+    card: 'https://lookthrough-rosy.vercel.app/',
+    source: 'https://github.com/oliveirag/aperture',
+    logo: '/images/projects/aperture.svg',
+  },
   {
     title: 'Teraphobia',
     card: 'https://teraphobia.com/',
