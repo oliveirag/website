@@ -3,7 +3,9 @@
 // itself reads in Source Serif 4 with the "thoughts" prose styles from tailwind.config.mjs.
 import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { thoughtsNewestFirst, thoughtPath, type Thought } from '../../scripts/thoughts';
+import PostMenuButton from '../../components/PostMenuButton.astro';
+import PostMenu from '../../components/PostMenu.astro';
+import { thoughtsNewestFirst, thoughtPath, markdownPath, type Thought } from '../../scripts/thoughts';
 import { dayOf } from '../../scripts/dated';
 import '../../styles/thoughts.css';
 
@@ -23,19 +25,22 @@ export async function getStaticPaths() {
 const { post, newer, older } = Astro.props as { post: Thought; newer?: Neighbour; older?: Neighbour };
 const { Content } = await render(post);
 const day = dayOf(post.data.date);
+// The post's address on notgui.com, whichever deploy is showing it: the Post menu shares this one.
+const url = new URL(thoughtPath(post), Astro.site).href;
 ---
 
 <Layout title={`${post.data.title} | gui's website`} description={post.data.summary} reading>
   <link slot="head" rel="preload" href="/fonts/source-serif-4-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
   <article class="w-full max-w-[624px] px-4 pt-4 sm:pt-8">
     <header class="mb-6">
-      <!-- The title row leaves room on the right for the post's own controls. -->
+      <!-- The title, with the Post menu's button at the column's right edge. -->
       <div class="flex items-start gap-4">
         <h1 class="flex-1 min-w-0">{post.data.title}</h1>
+        <PostMenuButton />
       </div>
       <time datetime={day} class="block mt-2 font-reading text-sm leading-6 text-secondary">{day}</time>
     </header>
-    <div class="prose prose-thoughts max-w-none font-reading">
+    <div class="prose prose-thoughts max-w-none font-reading" data-post-body>
       <Content />
     </div>
     {(newer || older) && (
@@ -56,6 +61,7 @@ const day = dayOf(post.data.date);
       </nav>
     )}
   </article>
+  <PostMenu slot="controls" url={url} markdown={markdownPath(post)} />
 </Layout>
 
 <style>

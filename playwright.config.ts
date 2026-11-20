@@ -6,7 +6,7 @@ const PORT = 4329;
 // THOUGHTS_DIR and VIDEOS_FILE, and that build goes to its own folder.
 const FIXTURES_PORT = 4330;
 // The specs that run against the fixture build.
-const FIXTURE_SPECS = /(thoughts|videos)\.spec\.ts/;
+const FIXTURE_SPECS = /(thoughts|videos|post-menu)\.spec\.ts/;
 // A third build with no posts and no videos, for the empty states, so they stay tested whatever the real lists
 // hold.
 const EMPTY_PORT = 4328;
