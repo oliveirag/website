@@ -68,20 +68,20 @@ const projects = [
     card: 'https://teraphobia.com/',
     source: 'https://github.com/ucfdevs/teraphobia',
     logo: '/images/projects/teraphobia.png',
-    description: 'Horror social deduction party game',
+    description: 'Horror social deduction party game similar to Jackbox',
   },
   {
     title: 'ollie',
     card: 'https://github.com/oliveirag/ollie',
     logo: '/images/projects/ollie.svg',
-    description: 'Robinhood AI trading iOS app',
+    description: 'Robinhood AI trading iOS app with human approval before every order',
   },
   {
     title: 'aperture',
     card: 'https://lookthrough-rosy.vercel.app/',
     source: 'https://github.com/oliveirag/aperture',
     logo: '/images/projects/aperture.svg',
-    description: 'AI investment research platform',
+    description: 'AI investment research platform to help understand your stock portfolio',
   },
   {
     title: 'onetap',
@@ -93,7 +93,7 @@ const projects = [
     title: 'guibot',
     card: 'https://github.com/oliveirag/guiBot',
     logo: '/images/projects/guibot.png',
-    description: 'Discord bot for moderation',
+    description: 'Discord bot for moderation and project management',
   },
 ];
 
@@ -121,6 +121,21 @@ test('Projects shows my six projects in order with lowercase titles and their de
     }
   }
 });
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`every project description shows in full, with nothing cut off (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+
+    for (const { title } of projects) {
+      const card = projectCard(page, title);
+      const description = card.locator('p');
+      const [text, cardBox] = await Promise.all([description.boundingBox(), card.boundingBox()]);
+      expect(await description.evaluate((p) => p.scrollHeight <= p.clientHeight + 1), title).toBe(true);
+      expect(text!.y + text!.height, title).toBeLessThanOrEqual(cardBox!.y + cardBox!.height);
+    }
+  });
+}
 
 test('"Download resume" is a text link styled like the Classic site link, and serves my resume', async ({ page }) => {
   await page.goto('/');
