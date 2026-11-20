@@ -61,6 +61,10 @@ _Avoid_: Blog, articles, writing
 The list a "..." button beside a Thoughts post's title opens, for sharing the post or reading it as plain text: copying its link, copying or viewing it as Markdown, asking ChatGPT or Claude about it, and sharing a selected quote.
 _Avoid_: Share menu, kebab menu, more menu
 
+**Section pill**:
+The small button at the bottom of a Thoughts post that names the section being read, or "Introduction" before the first one. It opens a list of the post's sections to jump to one. Posts without sections have none.
+_Avoid_: Table of contents, TOC, section indicator
+
 **Videos**:
 The page that lists Guilherme's YouTube videos and vlogs.
 _Avoid_: Vlogs

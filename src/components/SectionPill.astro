@@ -1,0 +1,220 @@
+---
+// The Section pill: a small button at the bottom centre of a Thoughts post naming the section being read, with a
+// ring that fills as the post is read. It opens a list of the post's sections, "Introduction" first, to jump to one.
+// The page renders it only for a post with at least one section heading (an h2). It goes in the page's controls slot,
+// outside the Sky, so the Sky's bottom fade never thins it out, and on those posts it takes the scroll hint's place.
+// scripts/section-pill.ts runs it.
+interface Props {
+  /** The post's section headings, in order: each h2's id and text. */
+  sections: { slug: string; text: string }[];
+}
+
+const { sections } = Astro.props;
+const INTRODUCTION = 'Introduction';
+---
+
+<button
+  type="button"
+  id="section-pill"
+  class="section-pill"
+  aria-label={`Show post sections. Current section: ${INTRODUCTION}`}
+  aria-haspopup="menu"
+  aria-expanded="false"
+  aria-controls="section-list"
+>
+  <svg class="section-pill-ring" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke-width="2" aria-hidden="true">
+    <circle class="section-pill-track" cx="8" cy="8" r="6" />
+    <circle class="section-pill-progress" cx="8" cy="8" r="6" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" />
+  </svg>
+  <span class="section-pill-label" data-section-label>{INTRODUCTION}</span>
+</button>
+<div id="section-list" class="section-list" role="menu" aria-label="Post sections" hidden>
+  {[{ slug: '', text: INTRODUCTION }, ...sections].map((section, i) => (
+    <button
+      type="button"
+      role="menuitem"
+      tabindex="-1"
+      class="section-list-item"
+      data-section={section.slug}
+      aria-current={i === 0 ? 'location' : undefined}
+    >
+      <span class="section-list-dot" aria-hidden="true"></span>
+      <span class="section-list-name">{section.text}</span>
+    </button>
+  ))}
+</div>
+
+<style is:global>
+  /* Where the scroll hint would be. The pill shows from the start, so the hint has nothing left to say. */
+  body:has(#section-pill) #scroll-hint {
+    display: none;
+  }
+
+  .section-pill {
+    position: fixed;
+    left: 50%;
+    /* Its 44px target rests on the Sky's bottom edge, like the sound control's, so it never reaches the grass. */
+    bottom: calc(var(--field-height) + var(--sky-gap) + 6px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    /* Clear of the sound control in the bottom left, on a 390px phone too. */
+    max-width: calc(100vw - 2 * var(--section-pill-side, 104px));
+    padding: 0 12px 0 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--text-primary);
+    /* Opaque: the post's text passes under it in the Sky's bottom fade. */
+    background: var(--surface-raised);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.16);
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition:
+      border-color var(--duration-base),
+      transform var(--duration-press) var(--ease-out);
+  }
+  @media (min-width: 640px) {
+    .section-pill {
+      --section-pill-side: 160px;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .section-pill:hover {
+      border-color: var(--border-control);
+    }
+  }
+  .section-pill[aria-expanded='true'] {
+    border-color: var(--border-control);
+  }
+  .section-pill:active {
+    transform: translateX(-50%) scale(0.97);
+  }
+  .section-pill:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+  /* Small to look at, but a full 44px tall to click or tap. */
+  .section-pill::after {
+    content: '';
+    position: absolute;
+    inset: -7px 0;
+  }
+
+  .section-pill-ring {
+    flex: none;
+    /* The ring starts filling from the top. */
+    transform: rotate(-90deg);
+  }
+  .section-pill-track {
+    stroke: var(--border-strong);
+  }
+  .section-pill-progress {
+    stroke: var(--text-primary);
+  }
+
+  .section-pill-label {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .section-list {
+    position: fixed;
+    left: 50%;
+    /* Opens upward from the pill: 8px above its top. The script caps its height at the Sky's top. */
+    bottom: calc(var(--field-height) + var(--sky-gap) + 6px + 32px + 8px);
+    z-index: 50;
+    width: max-content;
+    min-width: 200px;
+    max-width: min(368px, calc(100vw - 32px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-raised);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.24);
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+    animation: section-list-open var(--duration-fast) var(--ease-out);
+  }
+  .section-list[hidden] {
+    display: none;
+  }
+  @keyframes section-list-open {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 4px) scale(0.98);
+    }
+  }
+
+  .section-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    outline-offset: -2px;
+  }
+  .section-list-item[aria-current] {
+    color: var(--text-primary);
+  }
+  .section-list-item:focus {
+    outline: none;
+  }
+  .section-list-item:focus-visible {
+    outline: 2px solid var(--border-focus);
+  }
+  /* The item under the pointer or the arrow keys, tinted the way the Post menu's are. */
+  .section-list-item:focus-visible,
+  .section-list-item:hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-raised));
+  }
+
+  .section-list-dot {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--border-strong);
+  }
+  .section-list-item[aria-current] .section-list-dot {
+    background: var(--text-primary);
+  }
+
+  /* A heading jumped to takes focus so a screen reader reads on from it; it shows no ring, as it isn't a control. */
+  [data-post-body] h2[tabindex='-1']:focus {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-list {
+      animation: none;
+    }
+    .section-pill,
+    .section-pill:active {
+      transition: none;
+      transform: translateX(-50%);
+    }
+  }
+</style>
+
+<script>
+  import { onEveryPage } from '../scripts/page-lifecycle';
+  import { setUpSectionPill } from '../scripts/section-pill';
+
+  onEveryPage(setUpSectionPill);
+</script>
