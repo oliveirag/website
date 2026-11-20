@@ -3,4 +3,15 @@ title: Fixture post without a summary
 date: 2026-06-20
 ---
 
+import Aside from '../components/Aside.astro';
+export const mood = 'quiet';
+
 A short fixture post with no summary.
+
+<Aside>An aside from a component, kept as words in the Markdown copy.</Aside>
+
+{/* A comment the Markdown copy leaves out. */}
+
+```js
+import { trail } from './trail';
+```

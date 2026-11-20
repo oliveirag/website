@@ -57,6 +57,10 @@ _Avoid_: Bookshelf, other
 Dated posts written in the moment, short or long, listed newest first.
 _Avoid_: Blog, articles, writing
 
+**Post menu**:
+The list a "..." button beside a Thoughts post's title opens, for sharing the post or reading it as plain text: copying its link, copying or viewing it as Markdown, asking ChatGPT or Claude about it, and sharing a selected quote.
+_Avoid_: Share menu, kebab menu, more menu
+
 **Videos**:
 The page that lists Guilherme's YouTube videos and vlogs.
 _Avoid_: Vlogs
