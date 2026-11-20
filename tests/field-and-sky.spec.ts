@@ -317,7 +317,7 @@ for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE }
       page.getByRole('img', { name: 'Guilherme Oliveira' }),
       page.getByRole('region', { name: 'Now Playing' }),
       ...PROJECT_TITLES.map((title) => projectCard(page, title)),
-      page.getByRole('link', { name: 'Teraphobia source on github' }),
+      page.getByRole('link', { name: 'teraphobia source on github' }),
       page.getByText('412 commits in 2026'),
     ];
     for (const control of controls) {
