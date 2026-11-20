@@ -9,6 +9,8 @@ const CONFIRM_MS = 1500;
 const GAP = 8;
 const EDGE = 16;
 const SELECT_FIRST = 'Select text in the post first';
+// A letter or digit of a word, in any language.
+const WORD = /[\p{L}\p{M}\p{N}'’]/u;
 
 export function setUpPostMenu() {
   const button = document.getElementById('post-menu-button') as HTMLButtonElement | null;
@@ -38,11 +40,26 @@ export function setUpPostMenu() {
 
   const isOpen = () => !menu.hidden;
 
+  // The text selected in the post, widened to whole words: a text fragment only matches whole words, so a selection
+  // that starts or ends inside one would highlight nothing.
   const selectedInPost = () => {
     const selection = document.getSelection();
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) return '';
-    if (!post.contains(selection.getRangeAt(0).commonAncestorContainer)) return '';
-    return selection.toString().trim();
+    const range = selection.getRangeAt(0);
+    if (!post.contains(range.commonAncestorContainer)) return '';
+    let before = '';
+    let after = '';
+    if (range.startContainer.nodeType === Node.TEXT_NODE) {
+      const text = range.startContainer.textContent!;
+      let at = range.startOffset;
+      if (WORD.test(text[at] ?? '')) while (at > 0 && WORD.test(text[at - 1])) before = text[--at] + before;
+    }
+    if (range.endContainer.nodeType === Node.TEXT_NODE) {
+      const text = range.endContainer.textContent!;
+      let at = range.endOffset;
+      if (WORD.test(text[at - 1] ?? '')) while (at < text.length && WORD.test(text[at])) after += text[at++];
+    }
+    return (before + selection.toString() + after).trim();
   };
 
   const resetDescriptions = () => {

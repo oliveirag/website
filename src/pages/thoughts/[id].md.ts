@@ -13,5 +13,8 @@ export async function getStaticPaths() {
 export const GET: APIRoute = ({ props }) => {
   const { post } = props as { post: Thought };
   const text = markdownCopy({ title: post.data.title, day: dayOf(post.data.date), body: post.body ?? '' });
-  return new Response(text, { headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });
+  // The file is served as it is built, and a static host may send it as text/markdown with no charset, which a
+  // browser reads as Latin-1. A byte order mark first tells it the file is UTF-8, whatever the header says, and
+  // fetch's text() drops it again, so Copy Page copies the Markdown alone.
+  return new Response(`\uFEFF${text}`, { headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });
 };
