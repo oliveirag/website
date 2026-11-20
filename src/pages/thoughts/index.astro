@@ -2,11 +2,13 @@
 import Layout from '../../layouts/Layout.astro';
 import { thoughtsNewestFirst, thoughtPath } from '../../scripts/thoughts';
 import { dayOf } from '../../scripts/dated';
+import '../../styles/thoughts.css';
 
 const posts = await thoughtsNewestFirst();
 ---
 
 <Layout title="thoughts | gui's website">
+  {posts.length > 0 && <link slot="head" rel="preload" href="/fonts/source-serif-4-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />}
   <div class="max-w-5xl w-full p-4 sm:p-8 flex flex-col gap-2">
     <div class="flex items-baseline justify-between gap-4 max-w-2xl">
       <h1>thoughts</h1>
@@ -15,11 +17,11 @@ const posts = await thoughtsNewestFirst();
     {posts.length === 0 ? (
       <p class="text-secondary">nothing written yet. check back soon.</p>
     ) : (
-      <ol aria-label="posts" class="mt-6 flex flex-col gap-8 max-w-2xl">
+      <ol aria-label="posts" class="font-reading mt-6 flex flex-col gap-8 max-w-2xl">
         {posts.map((post) => (
           <li class="flex flex-col gap-1">
             <time datetime={dayOf(post.data.date)} class="text-sm text-secondary">{dayOf(post.data.date)}</time>
-            <a href={thoughtPath(post)} class="link w-fit inline-flex items-center min-h-11 -my-2 text-lg font-medium">{post.data.title}</a>
+            <a href={thoughtPath(post)} class="link w-fit inline-flex items-center min-h-11 -my-2 text-lg">{post.data.title}</a>
             {post.data.summary && <p class="text-secondary">{post.data.summary}</p>}
           </li>
         ))}

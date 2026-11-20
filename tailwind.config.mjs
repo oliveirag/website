@@ -61,18 +61,21 @@ export default {
 		  base: '200ms',
 		},
 		// `prose-thoughts`: a Thoughts post's colours from the design tokens, so the text follows Night and Day
-		// and reaches 4.5:1 on the sky. Tertiary grey is left out: in Day it can't reach that on the sky.
+		// and reaches 4.5:1 on the sky. Body text is the secondary grey and headings the primary, a little like
+		// antwi.dev's posts, whose own grey is too light for the sky in Day. Tertiary grey is left out: in Day it
+		// can't reach 4.5:1 on the sky. Sizes and gaps are in px, measured from antwi.dev's posts, so they don't
+		// drift with prose's em-based defaults.
 		typography: {
 		  thoughts: {
 			css: {
-			  '--tw-prose-body': 'var(--text-primary)',
+			  '--tw-prose-body': 'var(--text-secondary)',
 			  '--tw-prose-headings': 'var(--text-primary)',
 			  '--tw-prose-lead': 'var(--text-secondary)',
 			  '--tw-prose-links': 'var(--text-action)',
 			  '--tw-prose-bold': 'var(--text-primary)',
 			  '--tw-prose-counters': 'var(--text-secondary)',
 			  '--tw-prose-bullets': 'var(--text-secondary)',
-			  '--tw-prose-hr': 'var(--border-strong)',
+			  '--tw-prose-hr': 'var(--reading-rule)',
 			  '--tw-prose-quotes': 'var(--text-secondary)',
 			  '--tw-prose-quote-borders': 'var(--border-strong)',
 			  '--tw-prose-captions': 'var(--text-secondary)',
@@ -82,8 +85,19 @@ export default {
 			  '--tw-prose-pre-bg': 'var(--surface-raised)',
 			  '--tw-prose-th-borders': 'var(--border-strong)',
 			  '--tw-prose-td-borders': 'var(--border-default)',
+			  fontSize: '17px',
+			  lineHeight: '28px',
+			  'p, blockquote, ul, ol, pre, figure, table': { marginTop: '16px', marginBottom: '16px' },
+			  hr: { marginTop: '32px', marginBottom: '32px' },
+			  // Headings stay at the regular weight, like the page title, and stand out by size and colour.
+			  h2: { marginTop: '32px', marginBottom: '16px', fontSize: '22px', lineHeight: '32px', fontWeight: '400' },
+			  h3: { marginTop: '32px', marginBottom: '16px', fontSize: '19px', lineHeight: '28px', fontWeight: '400' },
+			  // Only regular, italic and semibold are loaded, so nothing asks for a medium the font doesn't have.
+			  'a, blockquote': { fontWeight: '400' },
 			  a: { textUnderlineOffset: '3px' },
 			  pre: { border: '1px solid var(--border-default)' },
+			  // The post reads in Source Serif 4, but code stays in the site's mono, not the browser's default one.
+			  'code, pre': { fontFamily: "'JetBrains Mono', monospace" },
 			},
 		  },
 		},

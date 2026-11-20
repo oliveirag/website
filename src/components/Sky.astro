@@ -3,9 +3,16 @@
 // and fades its content out over its last stretch, so nothing ever touches the Field.
 // It shows a "scroll" hint while there is more below and the visitor has not scrolled yet.
 // Each page brings its own Sky, so moving to another page starts at the top.
+// On a page meant for reading (a Thoughts post) the text runs up under the navigation and fades out there over a
+// longer stretch, the way posts do on antwi.dev.
+interface Props {
+  reading?: boolean;
+}
+
+const { reading = false } = Astro.props;
 ---
 
-<main id="sky" class="sky no-scrollbar">
+<main id="sky" class:list={['sky no-scrollbar', { 'sky-reading': reading }]}>
   <slot />
 </main>
 <div id="scroll-hint" class="scroll-hint" aria-hidden="true" data-shown="false">
@@ -56,6 +63,14 @@
     );
     -webkit-mask-image: var(--sky-mask);
     mask-image: var(--sky-mask);
+  }
+
+  /* Starts under the navigation's lower edge, below its links, and fades over 48px, so text leaving the top
+     thins out as it reaches the links. --sky-top-inset also sets the padding, so the first line still rests clear
+     of the fade. */
+  .sky.sky-reading {
+    top: calc(var(--nav-band) - 20px);
+    --sky-top-inset: 48px;
   }
 
   .scroll-hint {
