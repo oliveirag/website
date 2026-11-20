@@ -188,3 +188,18 @@ test('code in a post is grey on its own surface and follows Night and Day', asyn
   expect(day.background).not.toEqual(night.background);
   expect(day.text[0]).not.toEqual(night.text[0]);
 });
+
+// Each post title and the feed link stand alone, so each is a control with a 44px target.
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`the post titles and the rss link on Thoughts are at least 44px to click or tap (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/thoughts');
+    const links = [...(await page.getByRole('list', { name: 'posts' }).getByRole('link').all()), page.getByRole('link', { name: 'rss' })];
+    expect(links.length).toBe(4);
+    for (const link of links) {
+      const box = (await link.boundingBox())!;
+      expect(box.height, await link.textContent() ?? '').toBeGreaterThanOrEqual(44);
+      expect(box.width, await link.textContent() ?? '').toBeGreaterThanOrEqual(44);
+    }
+  });
+}

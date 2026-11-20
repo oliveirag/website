@@ -1,4 +1,4 @@
-import { test, expect, PROJECT_TITLES, projectCard } from './fixtures';
+import { test, expect, PROJECT_TITLES, projectCard, stubApis, reply } from './fixtures';
 
 test('Home shows my name, About, the project cards and Commits', async ({ page }) => {
   await page.goto('/');
@@ -16,7 +16,7 @@ test('Home shows my name, About, the project cards and Commits', async ({ page }
 test('About keeps the bio, contact, tech stack, photo, resume and Now Playing', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByText('computer science @ ucf.')).toBeVisible();
+  await expect(page.getByText('computer science @ ucf')).toBeVisible();
   await expect(page.getByText('currently building something cool')).toBeVisible();
   await expect(page.getByText('goliveiracoll@gmail.com')).toBeVisible();
   const social = {
@@ -42,7 +42,7 @@ test('"about this site" says what the site is built with, ends with the Classic 
   const aboutSite = page.locator('#about-site');
   await expect(aboutSite).toContainText('about this site');
   const words = await aboutSite.evaluate((node) => (node as HTMLElement).innerText.replace(/\s+/g, ' ').trim());
-  expect(words).toBe('about this site built with astro, react, and tailwind. click here for old site');
+  expect(words).toBe('about this site built with astro, react, and tailwind click here for old site');
 
   const classic = aboutSite.getByRole('link');
   await expect(classic).toHaveCount(1);
@@ -150,3 +150,36 @@ test('the photo, the newer logos and the newer poster are sized for the web and 
     expect(bytes, src).toBeLessThan(150_000);
   }
 });
+
+// Home's sentences end without a full stop, in every state Commits can be in. An ellipsis is not a full stop.
+const commitsStates = {
+  loaded: undefined,
+  empty: reply.json({ year: 2026, totalCommits: 0, repositories: [] }),
+  failed: reply.serverError(),
+};
+for (const [state, commitsReply] of Object.entries(commitsStates)) {
+  test(`no sentence on Home ends in a full stop (Commits ${state})`, async ({ page }) => {
+    if (commitsReply) await stubApis(page, { commits: commitsReply });
+    await page.goto('/');
+    await expect(page.getByRole('region', { name: 'Commits' })).not.toContainText('Loading');
+
+    const lines = await page.locator('body').evaluate((body) =>
+      (body as HTMLElement).innerText.split('\n').map((line) => line.trim()).filter(Boolean),
+    );
+    // Guards against reading Home before it rendered.
+    expect(lines.length).toBeGreaterThan(20);
+    expect(lines.filter((line) => /(?<!\.)\.$/.test(line))).toEqual([]);
+  });
+}
+
+// Links that stand alone on a line, rather than sitting in a sentence, are controls and get a 44px target.
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`the Classic site link and the resume link on Home are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    for (const name of ['click here for old site', 'Download resume']) {
+      const box = (await page.getByRole('link', { name }).boundingBox())!;
+      expect(box.height, name).toBeGreaterThanOrEqual(44);
+    }
+  });
+}

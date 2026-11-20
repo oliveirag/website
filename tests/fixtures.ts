@@ -21,6 +21,20 @@ export const reply = {
   networkError: () => (route: Route) => route.abort('failed'),
 };
 
+// The Chatbot's proxy, answering its CORS preflight and replying with `botOutput`.
+export async function stubChatbot(page: Page, botOutput: string) {
+  const headers = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-headers': 'content-type',
+    'access-control-allow-methods': 'POST, OPTIONS',
+  };
+  await page.route(`${PROXY}/api/chatbot`, (route) =>
+    route.request().method() === 'OPTIONS'
+      ? route.fulfill({ status: 204, headers })
+      : route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify({ botOutput }) }),
+  );
+}
+
 export const track = { title: 'Pink + White', artist: 'Frank Ocean', isPlaying: true, albumImageUrl: '' };
 
 export const commits = {

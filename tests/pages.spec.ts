@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, stubChatbot } from './fixtures';
 import { contrastRatio, rgbaFromCss, rgbaFromHex } from './contrast';
 
 test('Home holds About, Projects and Commits, and no tab switcher', async ({ page }) => {
@@ -85,5 +85,59 @@ for (const theme of ['night', 'day'] as const) {
     expect(b, 'blue is the strongest channel').toBeGreaterThan(Math.max(r, g) + 40);
     const panel = rgbaFromHex(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--surface-default').trim()));
     expect(contrastRatio(colour, panel)).toBeGreaterThanOrEqual(4.5);
+  });
+}
+
+// Until the Chatbot's script has loaded, a message typed into the server-rendered box would be wiped when the
+// script takes over, and Send would reload the page. So the box and Send take nothing until the Chatbot is ready.
+test('the Chatbot takes no message until it is ready, then sends one', async ({ page }) => {
+  let release!: () => void;
+  const scriptHeld = new Promise<void>((resolve) => (release = resolve));
+  await page.route('**/_astro/ChatBot.*.js', async (route) => {
+    await scriptHeld;
+    await route.continue();
+  });
+  await stubChatbot(page, 'ready now');
+  await page.goto('/chatbot', { waitUntil: 'domcontentloaded' });
+
+  const message = page.getByRole('textbox', { name: 'Message' });
+  await expect(message).toBeVisible();
+  await expect(message).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Send message' })).toBeDisabled();
+
+  release();
+  await message.fill('hi gui');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByText('ready now')).toBeVisible();
+  await expect(page.getByText('hi gui')).toBeVisible();
+});
+
+// Each poster's rank badge sits over its top-left corner. The rows scroll sideways, which clips anything outside
+// them, so every badge has to sit inside its row: none cut off at the top, and the first one not cut off at the left.
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`no Top 5 rank badge is cut off (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/top-5');
+    for (const list of ['movies', 'anime', 'video-games']) {
+      // The row is the scroller that holds the posters, found from the first poster.
+      const row = page.locator(`#${list}`).getByRole('img').first().locator('xpath=ancestor::div[contains(@class, "overflow-x-auto")]');
+      const rowBox = (await row.boundingBox())!;
+      for (const rank of [1, 2, 3, 4, 5]) {
+        const box = (await page.locator(`#${list}`).getByText(String(rank), { exact: true }).boundingBox())!;
+        expect(box.y, `${list} #${rank} top`).toBeGreaterThanOrEqual(rowBox.y);
+        if (rank === 1) expect(box.x, `${list} #1 left`).toBeGreaterThanOrEqual(rowBox.x);
+      }
+    }
+  });
+}
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`the Chatbot message box and Send are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/chatbot');
+    for (const control of [page.getByRole('textbox', { name: 'Message' }), page.getByRole('button', { name: 'Send message' })]) {
+      const box = (await control.boundingBox())!;
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
   });
 }
