@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import PostMenuButton from '../../components/PostMenuButton.astro';
 import PostMenu from '../../components/PostMenu.astro';
+import SectionPill from '../../components/SectionPill.astro';
 import { thoughtsNewestFirst, thoughtPath, markdownPath, type Thought } from '../../scripts/thoughts';
 import { dayOf } from '../../scripts/dated';
 import '../../styles/thoughts.css';
@@ -23,7 +24,9 @@ export async function getStaticPaths() {
 }
 
 const { post, newer, older } = Astro.props as { post: Thought; newer?: Neighbour; older?: Neighbour };
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+// The post's sections, one per h2, for the Section pill. A post without any shows no pill.
+const sections = headings.filter((heading) => heading.depth === 2).map(({ slug, text }) => ({ slug, text }));
 const day = dayOf(post.data.date);
 // The post's address on notgui.com, whichever deploy is showing it: the Post menu shares this one.
 const url = new URL(thoughtPath(post), Astro.site).href;
@@ -62,6 +65,7 @@ const url = new URL(thoughtPath(post), Astro.site).href;
     )}
   </article>
   <PostMenu slot="controls" url={url} markdown={markdownPath(post)} />
+  {sections.length > 0 && <SectionPill slot="controls" sections={sections} />}
 </Layout>
 
 <style>
