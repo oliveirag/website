@@ -65,9 +65,9 @@ const { reading = false } = Astro.props;
     mask-image: var(--sky-mask);
   }
 
-  /* Starts under the navigation's lower edge, below its links, and fades over 48px, so text leaving the top
-     thins out as it reaches the links. --sky-top-inset also sets the padding, so the first line still rests clear
-     of the fade. */
+  /* Starts 20px into the navigation band, just below the links' text (their 44px boxes overlap it, and stay on top
+     and clickable), and fades over 48px, so text leaving the top thins out as it reaches the links.
+     --sky-top-inset also sets the padding, so the first line still rests clear of the fade. */
   .sky.sky-reading {
     top: calc(var(--nav-band) - 20px);
     --sky-top-inset: 48px;

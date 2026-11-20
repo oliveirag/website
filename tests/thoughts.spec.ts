@@ -96,7 +96,8 @@ test('a post reads in Source Serif 4 from the site\'s own files, with its title 
   expect(await fontOf(main.locator('pre code'))).toMatch(JETBRAINS_MONO);
   expect(await fontOf(main.locator('p code'))).toMatch(JETBRAINS_MONO);
 
-  // The regular and italic faces load from the site itself, and text shows in a fallback while they do.
+  // The regular and italic faces, and the semibold for the post's bold words, load from the site itself, and
+  // text shows in a fallback while they do.
   const faces = await page.evaluate(async () => {
     await document.fonts.ready;
     return [...document.fonts]
@@ -106,8 +107,10 @@ test('a post reads in Source Serif 4 from the site\'s own files, with its title 
   expect(faces).toEqual(expect.arrayContaining([
     { style: 'normal', weight: '400', display: 'swap' },
     { style: 'italic', weight: '400', display: 'swap' },
+    { style: 'normal', weight: '600', display: 'swap' },
   ]));
-  expect(fontFiles).toEqual(expect.arrayContaining(['/fonts/source-serif-4-latin-400-normal.woff2', '/fonts/source-serif-4-latin-400-italic.woff2']));
+  expect(await main.locator('strong').evaluate((el) => getComputedStyle(el).fontWeight)).toBe('600');
+  expect(fontFiles).toEqual(expect.arrayContaining(['/fonts/source-serif-4-latin-400-normal.woff2', '/fonts/source-serif-4-latin-400-italic.woff2', '/fonts/source-serif-4-latin-600-normal.woff2']));
 });
 
 // Measured from antwi.dev's posts at 1200px wide, the layout the post follows.
@@ -154,11 +157,11 @@ test('a post sits in a centred 592px column with book-like spacing, grey text an
 
 // Under a divider at the end of a post: "Previous" on the left goes to the newer post, "Next" on the right to the
 // older one. content-build.spec.ts covers a post with neither.
-const neighbours = (page: Page) => page.getByRole('navigation', { name: 'more thoughts' });
+const moreThoughts = (page: Page) => page.getByRole('navigation', { name: 'more thoughts' });
 
 test('the newest post links only to the next, older post, under a divider', async ({ page }) => {
   await page.goto(newestFirst[0].href);
-  const more = neighbours(page);
+  const more = moreThoughts(page);
   await expect(more).toHaveCSS('border-top-style', 'solid');
   await expect(more.getByRole('link')).toHaveCount(1);
   const next = more.getByRole('link', { name: `Next ${newestFirst[1].title}` });
@@ -170,7 +173,7 @@ test('the newest post links only to the next, older post, under a divider', asyn
 
 test('the oldest post links only to the previous, newer post', async ({ page }) => {
   await page.goto(newestFirst[2].href);
-  const more = neighbours(page);
+  const more = moreThoughts(page);
   await expect(more).toHaveCSS('border-top-style', 'solid');
   await expect(more.getByRole('link')).toHaveCount(1);
   await expect(more.getByRole('link', { name: `Previous ${newestFirst[1].title}` })).toHaveAttribute('href', newestFirst[1].href);
@@ -180,7 +183,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   test(`a post in the middle has Previous on the left and Next on the right, each a 44px target (${viewport.width}x${viewport.height})`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto(newestFirst[1].href);
-    const more = neighbours(page);
+    const more = moreThoughts(page);
     const previous = more.getByRole('link', { name: `Previous ${newestFirst[0].title}` });
     const next = more.getByRole('link', { name: `Next ${newestFirst[2].title}` });
     await expect(previous).toHaveAttribute('href', newestFirst[0].href);
@@ -188,11 +191,11 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await more.scrollIntoViewIfNeeded();
     await expect(previous).toBeVisible();
     await expect(next).toBeVisible();
-    const [p, n, column] = [(await previous.boundingBox())!, (await next.boundingBox())!, (await page.locator('#sky .prose').boundingBox())!];
-    expect(Math.round(p.x)).toBe(Math.round(column.x));
-    expect(Math.round(n.x + n.width)).toBe(Math.round(column.x + column.width));
-    expect(p.x + p.width).toBeLessThanOrEqual(n.x);
-    for (const box of [p, n]) {
+    const [previousBox, nextBox, column] = [(await previous.boundingBox())!, (await next.boundingBox())!, (await page.locator('#sky .prose').boundingBox())!];
+    expect(Math.round(previousBox.x)).toBe(Math.round(column.x));
+    expect(Math.round(nextBox.x + nextBox.width)).toBe(Math.round(column.x + column.width));
+    expect(previousBox.x + previousBox.width).toBeLessThanOrEqual(nextBox.x);
+    for (const box of [previousBox, nextBox]) {
       expect(box.height).toBeGreaterThanOrEqual(44);
       expect(box.width).toBeGreaterThanOrEqual(44);
     }
