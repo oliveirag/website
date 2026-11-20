@@ -55,7 +55,8 @@ const INTRODUCTION = 'Introduction';
     left: 50%;
     /* Its 44px target rests on the Sky's bottom edge, like the sound control's, so it never reaches the grass. */
     bottom: calc(var(--field-height) + var(--sky-gap) + 6px);
-    z-index: 50;
+    /* Above the Sky and its hint, under the navigation (and its phone menu) and the Post menu. */
+    z-index: 28;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -128,7 +129,7 @@ const INTRODUCTION = 'Introduction';
     left: 50%;
     /* Opens upward from the pill: 8px above its top. The script caps its height at the Sky's top. */
     bottom: calc(var(--field-height) + var(--sky-gap) + 6px + 32px + 8px);
-    z-index: 50;
+    z-index: 28;
     width: max-content;
     min-width: 200px;
     max-width: min(368px, calc(100vw - 32px));

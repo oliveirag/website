@@ -1,6 +1,7 @@
 // The Section pill on a Thoughts post (SectionPill.astro). As the Sky scrolls, it names the section being read: the
 // last section heading to pass a line a third of the way down the Sky, or "Introduction" above the first one. At the
-// very end of a post, a last section too short to reach that line still counts once its heading is on screen. Its
+// very end of a post, a last section too short to reach that line still counts once its heading is on screen, unless
+// the reader chose a section from the list to get there: that one stays named until they scroll or press a key. Its
 // ring fills with how far the post has been read.
 // The list follows the menu button pattern, as the Post menu does: Enter, Space or a click opens it on the current
 // section, Down on its first item and Up on its last; the arrows, Home and End move through it; Escape, Tab or a click
@@ -30,6 +31,8 @@ export function setUpSectionPill() {
 
   let current = -1;
   let frame = 0;
+  // The section last chosen from the list, until the reader scrolls or presses a key.
+  let chosen: number | null = null;
 
   const isOpen = () => !list.hidden;
 
@@ -42,6 +45,8 @@ export function setUpSectionPill() {
       if (heading!.getBoundingClientRect().top <= line) at = i + 1;
     });
     const atEnd = sky.scrollTop + sky.clientHeight >= sky.scrollHeight - 2;
+    // Several short sections can share the end of a post, and the Sky can't scroll any of them to the top.
+    if (atEnd && chosen !== null) return chosen;
     if (atEnd && sky.scrollTop > 0) {
       const fade = parseFloat(getComputedStyle(sky).paddingBottom);
       headings.forEach((heading, i) => {
@@ -96,6 +101,9 @@ export function setUpSectionPill() {
 
   function jumpTo(index: number) {
     close(false);
+    chosen = index;
+    // At the end of a post the Sky may not move at all, so no scroll event would name the section.
+    schedule();
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
     const heading = headings[index - 1];
     if (!heading) {
@@ -175,6 +183,15 @@ export function setUpSectionPill() {
   );
 
   sky.addEventListener('scroll', schedule, { passive: true, signal });
+  // The reader moving on by themselves.
+  const letGo = () => {
+    if (chosen === null) return;
+    chosen = null;
+    schedule();
+  };
+  sky.addEventListener('wheel', letGo, { passive: true, signal });
+  sky.addEventListener('touchstart', letGo, { passive: true, signal });
+  document.addEventListener('keydown', letGo, { capture: true, signal });
   window.addEventListener('resize', () => (schedule(), isOpen() && place()), { signal });
   // The post's height changes as its fonts and images load.
   const resized = new ResizeObserver(schedule);
