@@ -166,6 +166,7 @@ for (const [state, commitsReply] of Object.entries(commitsStates)) {
     const lines = await page.locator('body').evaluate((body) =>
       (body as HTMLElement).innerText.split('\n').map((line) => line.trim()).filter(Boolean),
     );
+    // Guards against reading Home before it rendered.
     expect(lines.length).toBeGreaterThan(20);
     expect(lines.filter((line) => /(?<!\.)\.$/.test(line))).toEqual([]);
   });
@@ -173,7 +174,7 @@ for (const [state, commitsReply] of Object.entries(commitsStates)) {
 
 // Links that stand alone on a line, rather than sitting in a sentence, are controls and get a 44px target.
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
-  test(`the old site and resume links on Home are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
+  test(`the Classic site link and the resume link on Home are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
     for (const name of ['click here for old site', 'Download resume']) {

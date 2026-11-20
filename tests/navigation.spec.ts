@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './fixtures';
+import { test, expect, stubChatbot, type Page } from './fixtures';
 
 const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
@@ -343,15 +343,7 @@ test.describe('moving between pages', () => {
   });
 
   test('the Chatbot works when reached from another page', async ({ page }) => {
-    await page.route('https://my-website-spotify-api.vercel.app/api/chatbot', (route) => {
-      const headers = {
-        'access-control-allow-origin': '*',
-        'access-control-allow-headers': 'content-type',
-        'access-control-allow-methods': 'POST, OPTIONS',
-      };
-      if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
-      return route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify({ botOutput: 'hey, nice to meet you' }) });
-    });
+    await stubChatbot(page, 'hey, nice to meet you');
     await page.goto('/');
     await navLink(page, 'chatbot').click();
     const message = page.getByRole('textbox', { name: 'Message' });

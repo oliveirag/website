@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, stubChatbot } from './fixtures';
 import { contrastRatio, rgbaFromCss, rgbaFromHex } from './contrast';
 
 test('Home holds About, Projects and Commits, and no tab switcher', async ({ page }) => {
@@ -97,15 +97,7 @@ test('the Chatbot takes no message until it is ready, then sends one', async ({ 
     await scriptHeld;
     await route.continue();
   });
-  await page.route('https://my-website-spotify-api.vercel.app/api/chatbot', (route) => {
-    const headers = {
-      'access-control-allow-origin': '*',
-      'access-control-allow-headers': 'content-type',
-      'access-control-allow-methods': 'POST, OPTIONS',
-    };
-    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
-    return route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify({ botOutput: 'ready now' }) });
-  });
+  await stubChatbot(page, 'ready now');
   await page.goto('/chatbot', { waitUntil: 'domcontentloaded' });
 
   const message = page.getByRole('textbox', { name: 'Message' });
@@ -127,14 +119,13 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await page.setViewportSize(viewport);
     await page.goto('/top-5');
     for (const list of ['movies', 'anime', 'video-games']) {
-      const row = page.locator(`#${list} > div`).nth(1);
+      // The row is the scroller that holds the posters, found from the first poster.
+      const row = page.locator(`#${list}`).getByRole('img').first().locator('xpath=ancestor::div[contains(@class, "overflow-x-auto")]');
       const rowBox = (await row.boundingBox())!;
-      const badges = row.locator('span.rounded-full');
-      await expect(badges).toHaveCount(5);
-      for (const [index, badge] of (await badges.all()).entries()) {
-        const box = (await badge.boundingBox())!;
-        expect(box.y, `${list} #${index + 1} top`).toBeGreaterThanOrEqual(rowBox.y);
-        if (index === 0) expect(box.x, `${list} #1 left`).toBeGreaterThanOrEqual(rowBox.x);
+      for (const rank of [1, 2, 3, 4, 5]) {
+        const box = (await page.locator(`#${list}`).getByText(String(rank), { exact: true }).boundingBox())!;
+        expect(box.y, `${list} #${rank} top`).toBeGreaterThanOrEqual(rowBox.y);
+        if (rank === 1) expect(box.x, `${list} #1 left`).toBeGreaterThanOrEqual(rowBox.x);
       }
     }
   });

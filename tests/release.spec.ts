@@ -1,4 +1,4 @@
-import { test, expect, motionSettled, type Page } from './fixtures';
+import { test, expect, motionSettled, stubChatbot, type Page } from './fixtures';
 import { textBelowAA } from './sky-text';
 
 // Checks from the release check (#19) that no other spec covered: contrast on the Chatbot and Top 5 pages, no
@@ -21,6 +21,7 @@ for (const theme of ['night', 'day'] as const) {
       await openInTheme(page, path, theme);
       if (path === '/chatbot') await expect(page.getByText(/tuned to act like Gui/)).toBeVisible();
       const { found, failures, rows } = await textBelowAA(page);
+      // Guards against reading an empty page: Top 5 has its titles and list names on the sky, the Chatbot only the chrome.
       expect(found.length).toBeGreaterThan(path === '/top-5' ? 10 : 4);
       if (process.env.PRINT_CONTRAST) console.log(`\n${theme}, ${path}\n${rows.join('\n')}`);
       expect(failures).toEqual([]);
@@ -50,6 +51,7 @@ test.describe('with the scenes able to load', () => {
     const bodies = await Promise.all([...scripts].map(async (url) => (await page.request.get(url)).text()));
     // Grass and Bloom Type both downloaded, so the scenes' chunks were read too.
     expect(bodies.some((body) => body.includes('DESIGNELY'))).toBe(true);
+    // Guards against reading too little: the five pages and both scenes load more than 15 scripts.
     expect(bodies.length).toBeGreaterThan(15);
     expect(bodies.filter((body) => /jquery/i.test(body))).toEqual([]);
   });
@@ -67,15 +69,7 @@ test.describe('before the scenes have loaded', () => {
       await held;
       await route.abort();
     });
-    await page.route('https://my-website-spotify-api.vercel.app/api/chatbot', (route) => {
-      const headers = {
-        'access-control-allow-origin': '*',
-        'access-control-allow-headers': 'content-type',
-        'access-control-allow-methods': 'POST, OPTIONS',
-      };
-      if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
-      return route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify({ botOutput: 'still here' }) });
-    });
+    await stubChatbot(page, 'still here');
 
     // Home, with the Intro showing and its drawing held back: a key ends it and Home is there.
     await page.goto('/');

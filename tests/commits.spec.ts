@@ -51,24 +51,24 @@ test.describe('Commits', () => {
     await expect(commitsRegion(page)).toContainText(language);
     await expect(page.locator('#injected-repo, #injected-language')).toHaveCount(0);
   });
-});
 
-test('a repository with no language shows only its commits, and one commit reads as "1 commit"', async ({ page }) => {
-  await stubApis(page, {
-    commits: reply.json({
-      year: 2026,
-      totalCommits: 13,
-      repositories: [
-        { name: 'website', language: 'Astro', commits: 12 },
-        { name: 'design-system', language: null, commits: 1 },
-      ],
-    }),
+  test('a repository with no language shows only its commits, and one commit reads as "1 commit"', async ({ page }) => {
+    await stubApis(page, {
+      commits: reply.json({
+        year: 2026,
+        totalCommits: 13,
+        repositories: [
+          { name: 'website', language: 'Astro', commits: 12 },
+          { name: 'design-system', language: null, commits: 1 },
+        ],
+      }),
+    });
+    await page.goto('/');
+    const region = commitsRegion(page);
+
+    await expect(region).toContainText('Astro • 12 commits');
+    await expect(region).toContainText('design-system');
+    await expect(region).not.toContainText('null');
+    await expect(region.getByText('1 commit', { exact: true })).toBeVisible();
   });
-  await page.goto('/');
-  const region = commitsRegion(page);
-
-  await expect(region).toContainText('Astro • 12 commits');
-  await expect(region).toContainText('design-system');
-  await expect(region).not.toContainText('null');
-  await expect(region.getByText('1 commit', { exact: true })).toBeVisible();
 });
