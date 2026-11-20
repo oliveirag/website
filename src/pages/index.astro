@@ -165,8 +165,8 @@ const mainProjects = [
     if (podium) name.append(textElement('span', rankColors[index], `#${index + 1}`), ' ');
     name.append(String(repo.name));
     heading.append(name);
-    const count = `${repo.commits} ${repo.commits === 1 ? 'commit' : 'commits'}`;
-    card.append(heading, textElement('span', 'inline-block text-xs text-secondary', repo.language ? `${repo.language} • ${count}` : count));
+    const commitLabel = `${repo.commits} ${repo.commits === 1 ? 'commit' : 'commits'}`;
+    card.append(heading, textElement('span', 'inline-block text-xs text-secondary', repo.language ? `${repo.language} • ${commitLabel}` : commitLabel));
     return card;
   }
 

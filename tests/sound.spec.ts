@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './fixtures';
+import { test, expect, stubChatbot, type Page } from './fixtures';
 
 // The sound engine reports its state on the document: locked, playing or muted. These tests read only that
 // state and what the sound control shows, never audio output.
@@ -148,11 +148,7 @@ test('gestures, links, the theme toggle and a Chatbot send run the sound engine 
   page.on('pageerror', (error) => problems.push(error.message));
   page.on('requestfailed', (request) => problems.push(`${request.url()} ${request.failure()?.errorText}`));
   page.on('response', (response) => response.status() >= 400 && problems.push(`${response.status()} ${response.url()}`));
-  await page.route('https://my-website-spotify-api.vercel.app/api/chatbot', (route) =>
-    route.request().method() === 'OPTIONS'
-      ? route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } })
-      : route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify({ botOutput: 'hi' }) }),
-  );
+  await stubChatbot(page, 'hi');
 
   await page.goto('/');
   await page.mouse.click(10, 300);
