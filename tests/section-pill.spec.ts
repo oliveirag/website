@@ -3,11 +3,12 @@ import { textBelowAA } from './sky-text';
 
 // The Section pill on a Thoughts post. These run against the build with the fixture posts in tests/fixtures/thoughts
 // (the "fixtures" project in playwright.config.ts). The newest fixture post has two sections, "A subheading" (with
-// an h3 inside it, which is not a section) and a short "Last words" at the very end; the other two have none.
+// an h3 inside it, which is not a section), then two short ones at the very end, "Nearly done" and "Last words",
+// which the Sky can't scroll to the top. The other two posts have none.
 
 const withSections = 'on-the-ridge';
 const withoutSections = ['first-light', 'a-short-one'];
-const SECTIONS = ['Introduction', 'A subheading', 'Last words'];
+const SECTIONS = ['Introduction', 'A subheading', 'Nearly done', 'Last words'];
 
 const pill = (page: Page) => page.locator('#section-pill');
 const pillButton = (page: Page) => page.getByRole('button', { name: /^Show post sections\. Current section: / });
@@ -130,9 +131,22 @@ test.describe('the Section pill', () => {
     await expect.poll(() => sky(page).evaluate((el) => el.scrollTop)).toBe(0);
     await expectCurrent(page, 'Introduction');
 
-    // A section near the end that can't scroll to the top is still the one named once it's reached.
+    // A section near the end that can't scroll to the top is still the one named once it's reached, even with
+    // another short one after it.
+    await pillButton(page).click();
+    await item(page, 'Nearly done').click();
+    await expect.poll(() => sky(page).evaluate((el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2)).toBe(true);
+    await expectCurrent(page, 'Nearly done');
     await pillButton(page).click();
     await item(page, 'Last words').click();
+    await expectCurrent(page, 'Last words');
+    await pillButton(page).click();
+    await item(page, 'Nearly done').click();
+    await expectCurrent(page, 'Nearly done');
+    // Once the reader scrolls by themselves, the end of the post names its last section again.
+    const skyBox = (await sky(page).boundingBox())!;
+    await page.mouse.move(skyBox.x + skyBox.width / 2, skyBox.y + skyBox.height / 2);
+    await page.mouse.wheel(0, 200);
     await expectCurrent(page, 'Last words');
   });
 
@@ -316,6 +330,41 @@ test.describe('the Section pill', () => {
     expect(long.cut).toBe(true);
     expect(long.gapToSound).toBeGreaterThanOrEqual(8);
     expect(long.pillRight).toBeLessThanOrEqual(390 - 16);
+  });
+
+  test('on a short phone it stays under the navigation\'s menu, and its list stops at the Sky\'s top', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 420 });
+    await page.goto(`/thoughts/${withSections}/`);
+    await page.getByRole('button', { name: 'menu', exact: true }).click();
+    const links = page.locator('#site-nav-links a');
+    await expect(links.first()).toBeVisible();
+    // On a screen this short the menu reaches down past the pill's top.
+    const overlap = await page.evaluate(
+      () => document.getElementById('site-nav-links')!.getBoundingClientRect().bottom - document.getElementById('section-pill')!.getBoundingClientRect().top,
+    );
+    expect(overlap).toBeGreaterThan(0);
+    const onTop = await links.evaluateAll((all) =>
+      all.map((a) => {
+        const box = a.getBoundingClientRect();
+        return a.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2));
+      }),
+    );
+    expect(onTop.every(Boolean)).toBe(true);
+    await page.keyboard.press('Escape');
+
+    await pillButton(page).click();
+    await motionSettled(page);
+    const fit = await page.evaluate(() => {
+      const list = document.getElementById('section-list')!;
+      const button = document.querySelector<HTMLElement>('.nav-menu-button')!.getBoundingClientRect();
+      return {
+        top: list.getBoundingClientRect().top,
+        skyTop: document.getElementById('sky')!.getBoundingClientRect().top,
+        menuButtonOnTop: document.elementFromPoint(button.left + button.width / 2, button.top + button.height / 2)?.closest('.nav-menu-button') !== null,
+      };
+    });
+    expect(fit.top).toBeGreaterThanOrEqual(fit.skyTop);
+    expect(fit.menuButtonOnTop).toBe(true);
   });
 
   for (const theme of ['night', 'day'] as const) {
