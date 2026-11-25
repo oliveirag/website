@@ -30,7 +30,7 @@ test('About keeps the bio, contact, tech stack, photo, resume and Now Playing', 
   }
   await expect(page.locator('#tech-stack')).toHaveText(/^\s*tech stack\s*python, javascript\/typescript, and swift\s*$/);
   await expect(page.getByRole('img', { name: 'Guilherme Oliveira' })).toBeVisible();
-  const resume = page.getByRole('link', { name: 'Download resume' });
+  const resume = page.getByRole('link', { name: 'download resume' });
   await expect(resume).toHaveAttribute('href', '/resume.pdf');
   await expect(resume).toHaveAttribute('download', /\.pdf$/);
   await expect(page.getByRole('region', { name: 'Now Playing' })).toContainText('Pink + White');
@@ -61,39 +61,39 @@ const projects = [
     title: 'zaklang',
     card: 'https://github.com/sducf/zaklang',
     logo: '/images/projects/zaklang.png',
-    description: 'Token-efficient programming language and benchmark for LLM code generation',
+    description: 'token-efficient programming language and benchmark',
   },
   {
     title: 'teraphobia',
     card: 'https://teraphobia.com/',
     source: 'https://github.com/ucfdevs/teraphobia',
     logo: '/images/projects/teraphobia.png',
-    description: 'Horror social deduction party game similar to Jackbox',
+    description: 'horror social deduction party game app',
   },
   {
     title: 'ollie',
     card: 'https://github.com/oliveirag/ollie',
-    logo: '/images/projects/ollie.svg',
-    description: 'Robinhood AI trading iOS app with human approval before every order',
+    logo: '/images/projects/ollie.png',
+    description: 'robinhood agentic trading app',
   },
   {
     title: 'aperture',
     card: 'https://lookthrough-rosy.vercel.app/',
     source: 'https://github.com/oliveirag/aperture',
     logo: '/images/projects/aperture.svg',
-    description: 'AI investment research platform to help understand your stock portfolio',
+    description: 'stock portfolio x-ray web app',
   },
   {
     title: 'onetap',
     card: 'https://github.com/oliveirag/onetap',
     logo: '/images/projects/onetap.svg',
-    description: 'Mobile app that routes purchases to your best credit card',
+    description: 'credit card optimizer app',
   },
   {
-    title: 'guibot',
-    card: 'https://github.com/oliveirag/guiBot',
-    logo: '/images/projects/guibot.png',
-    description: 'Discord bot for moderation and project management',
+    title: 'lobo',
+    card: 'https://github.com/oliveirag/lobo',
+    logo: '/images/projects/lobo.png',
+    description: 'husky discord bot',
   },
 ];
 
@@ -137,10 +137,39 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
-test('"Download resume" is a text link styled like the Classic site link, and serves my resume', async ({ page }) => {
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`each project's title and description are centred on its logo, with the GitHub icon in the top-right corner (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+
+    const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
+    for (const { title, source } of projects) {
+      const card = projectCard(page, title);
+      const [cardBox, logo, name, description, icon] = await Promise.all([
+        card.boundingBox(),
+        card.locator('img').boundingBox(),
+        card.locator('.font-bold').boundingBox(),
+        card.locator('p').boundingBox(),
+        card.locator('[aria-hidden="true"]').boundingBox(),
+      ]);
+      // From the top of the title to the bottom of the description, the text that shows.
+      const text = { y: name!.y, height: description!.y + description!.height - name!.y };
+      expect(Math.abs(middle(text) - middle(logo!)), title).toBeLessThanOrEqual(1);
+      expect(icon!.y - cardBox!.y, title).toBeCloseTo(19, 0);
+      expect(cardBox!.x + cardBox!.width - (icon!.x + icon!.width), title).toBeCloseTo(17, 0);
+      if (source) {
+        const link = (await page.getByRole('link', { name: `${title} source on github` }).boundingBox())!;
+        expect(Math.abs(middle(link) - middle(icon!)), title).toBeLessThanOrEqual(1);
+        expect(Math.abs(link.x + link.width / 2 - (icon!.x + icon!.width / 2)), title).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+}
+
+test('"download resume" is a text link styled like the Classic site link, and serves my resume', async ({ page }) => {
   await page.goto('/');
 
-  const resume = page.getByRole('link', { name: 'Download resume' });
+  const resume = page.getByRole('link', { name: 'download resume' });
   const classic = page.getByRole('link', { name: 'click here for old site' });
   for (const property of ['color', 'text-decoration-line', 'background-color', 'font-size', 'font-weight']) {
     const expected = await classic.evaluate((node, name) => getComputedStyle(node).getPropertyValue(name), property);
@@ -173,7 +202,8 @@ const webSizedImages = [
   { page: '/', src: '/images/guilherme.jpg', alt: 'Guilherme Oliveira', maxWidth: 600 },
   { page: '/', src: '/images/projects/zaklang.png', alt: '', maxWidth: 168 },
   { page: '/', src: '/images/projects/teraphobia.png', alt: '', maxWidth: 168 },
-  { page: '/', src: '/images/projects/guibot.png', alt: '', maxWidth: 168 },
+  { page: '/', src: '/images/projects/ollie.png', alt: '', maxWidth: 168 },
+  { page: '/', src: '/images/projects/lobo.png', alt: '', maxWidth: 168 },
   { page: '/top-5', src: '/images/acblackflagresynced.jpg', alt: 'AC Black Flag Resynced', maxWidth: 300 },
   { page: '/chatbot', src: '/images/projects/guibot.png', alt: '', maxWidth: 168 },
 ];
@@ -218,7 +248,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   test(`the Classic site link and the resume link on Home are at least 44px tall (${viewport.width}x${viewport.height})`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
-    for (const name of ['click here for old site', 'Download resume']) {
+    for (const name of ['click here for old site', 'download resume']) {
       const box = (await page.getByRole('link', { name }).boundingBox())!;
       expect(box.height, name).toBeGreaterThanOrEqual(44);
     }

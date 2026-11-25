@@ -13,10 +13,12 @@ import ExternalLink from '../icons/ExternalLink.astro';
 const { title, description, github, url, image } = Astro.props;
 const href = url ?? github;
 const isGithub = href?.startsWith('https://github.com');
+// The card's icon sits in its top-right corner, 19px down (1px border + 16px padding + 2px, level with the first
+// title line) and 17px in, while the title and description are centred on the logo. Absolute offsets start inside
+// the border, so they read top-[18px] right-[16px].
 // A project with a site and its source: the card opens the site and the GitHub icon is its own link. Links can't
-// nest, so that icon is a sibling laid over the card's icon spot.
-// Its 44px square is centred on the card's 24px icon spot: 1px border + 16px padding + 2px to centre it in the 28px
-// title line, so top-[9px] right-[7px] follows the card's padding.
+// nest, so that icon is a sibling laid over the card's icon spot: its 44px square is centred on the 24px spot, so
+// top-[9px] right-[7px].
 const sourceLink = github && github !== href ? github : undefined;
 ---
 
@@ -25,16 +27,18 @@ const sourceLink = github && github !== href ? github : undefined;
         href={href}
         target="_blank"
         rel="noreferrer"
-        class="project glow-border interactive group flex items-center gap-4 rounded-lg p-4 min-h-32 h-full w-full overflow-hidden"
+        class="project glow-border interactive group relative flex items-center gap-4 rounded-lg p-4 min-h-32 h-full w-full overflow-hidden"
     >
         {image && <img src={image} alt="" class="mx-2 w-14 h-14 rounded aspect-square shrink-0" />}
-        <div class="h-full w-full min-w-0">
-            <div class="mb-2 flex w-full items-center justify-between gap-2">
+        <span class:list={['absolute top-[18px] right-[16px] flex w-6 h-6 items-center justify-center text-icon-secondary group-hover:text-icon-primary transition-colors duration-fast ease-out', { invisible: sourceLink }]} aria-hidden="true">
+            {isGithub || sourceLink ? <GithubIcon class="w-6 h-6" /> : <ExternalLink class="w-4 h-4" />}
+        </span>
+        <!-- Not full height, so the card's items-center centres the title and description on the logo. The title row's
+             pr-8 keeps the title clear of the corner icon; the description's w-5/6 already does. -->
+        <div class="w-full min-w-0">
+            <div class="mb-2 flex w-full items-center pr-8">
                 <span class="flex items-center gap-1 font-bold text-lg sm:text-xl text-primary truncate">
                     {title}
-                </span>
-                <span class:list={['shrink-0 text-icon-secondary group-hover:text-icon-primary transition-colors duration-fast ease-out', { invisible: sourceLink }]} aria-hidden="true">
-                    {isGithub || sourceLink ? <GithubIcon class="w-6 h-6" /> : <ExternalLink class="w-4 h-4" />}
                 </span>
             </div>
             <!-- No line clamp: on a phone a long description wraps to more lines and the card grows to fit it. -->
