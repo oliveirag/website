@@ -313,7 +313,7 @@ for (const [size, viewport] of Object.entries({ desktop: DESKTOP, phone: PHONE }
     const controls = [
       page.getByRole('link', { name: 'github', exact: true }),
       page.getByRole('link', { name: 'instagram' }),
-      page.getByRole('link', { name: 'Download resume' }),
+      page.getByRole('link', { name: 'download resume' }),
       page.getByRole('img', { name: 'Guilherme Oliveira' }),
       page.getByRole('region', { name: 'Now Playing' }),
       ...PROJECT_TITLES.map((title) => projectCard(page, title)),
