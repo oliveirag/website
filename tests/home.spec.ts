@@ -137,6 +137,35 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`each project's title and description are centred on its logo, with the GitHub icon in the top-right corner (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+
+    const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
+    for (const { title, source } of projects) {
+      const card = projectCard(page, title);
+      const [cardBox, logo, name, description, icon] = await Promise.all([
+        card.boundingBox(),
+        card.locator('img').boundingBox(),
+        card.locator('.font-bold').boundingBox(),
+        card.locator('p').boundingBox(),
+        card.locator('[aria-hidden="true"]').boundingBox(),
+      ]);
+      // From the top of the title to the bottom of the description, the text that shows.
+      const text = { y: name!.y, height: description!.y + description!.height - name!.y };
+      expect(Math.abs(middle(text) - middle(logo!)), title).toBeLessThanOrEqual(1);
+      expect(icon!.y - cardBox!.y, title).toBeCloseTo(19, 0);
+      expect(cardBox!.x + cardBox!.width - (icon!.x + icon!.width), title).toBeCloseTo(17, 0);
+      if (source) {
+        const link = (await page.getByRole('link', { name: `${title} source on github` }).boundingBox())!;
+        expect(Math.abs(middle(link) - middle(icon!)), title).toBeLessThanOrEqual(1);
+        expect(Math.abs(link.x + link.width / 2 - (icon!.x + icon!.width / 2)), title).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+}
+
 test('"download resume" is a text link styled like the Classic site link, and serves my resume', async ({ page }) => {
   await page.goto('/');
 
