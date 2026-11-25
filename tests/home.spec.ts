@@ -81,7 +81,7 @@ const projects = [
     card: 'https://lookthrough-rosy.vercel.app/',
     source: 'https://github.com/oliveirag/aperture',
     logo: '/images/projects/aperture.svg',
-    description: 'stock portfolio x-ray and stress testing web app',
+    description: 'stock portfolio x-ray web app',
   },
   {
     title: 'onetap',
